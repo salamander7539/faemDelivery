@@ -10,13 +10,14 @@ Future<AuthData> loadAuthData(String deviceId, String phone) async {
     "device_id": deviceId,
     "phone": phone
   });
-  var url = 'https://client.apis.stage.faem.pro/api/v2/auth/new';
+  var url = 'https://driver.apis.stage.faem.pro/api/v2/auth/new';
   var response = await http.post(url, body: jsonRequest, headers: <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
   });
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
     authData = new AuthData.fromJson(jsonResponse);
+    print(response.body);
   } else {
     print('Request failed with status: ${response.statusCode}.');
   }
