@@ -1,6 +1,5 @@
 import 'package:faem_delivery/deliveryJson/get_orders.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 
@@ -15,6 +14,7 @@ class OrderPage extends StatefulWidget {
 class _OrderPageState extends State<OrderPage> {
   bool phoneVisibility = false;
   bool deniedCallVisibility = false;
+
 
   @override
   void initState() {
@@ -106,7 +106,7 @@ class _OrderPageState extends State<OrderPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "(Задание)",
+                                    "Прибыть в ресторан",
                                     style: TextStyle(
                                       fontSize: 16.0,
                                       color: Color(0xFFFD6F6D),
@@ -140,7 +140,7 @@ class _OrderPageState extends State<OrderPage> {
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 6.0, horizontal: 20.0),
                                   child: Text(
-                                    "(Срочность)",
+                                    "СРОЧНО",
                                     style: TextStyle(
                                       fontSize: 10.0,
                                       color: Color(0xFFFD6F6D),
@@ -172,7 +172,7 @@ class _OrderPageState extends State<OrderPage> {
                                       "images/icons/restaurant_icon.png"),
                                 ),
                                 Text(
-                                  "Название ресторана",
+                                  "${orders[chosenIndex]['order']['routes'][0]['value']}",
                                   style: TextStyle(
                                     fontSize: 24.0,
                                     fontWeight: FontWeight.bold,
@@ -188,7 +188,7 @@ class _OrderPageState extends State<OrderPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Адрес",
+                                "${orders[chosenIndex]['order']['routes'][0]['street']}, ${orders[chosenIndex]['order']['routes'][0]['house']}",
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: (16.0),
@@ -229,7 +229,7 @@ class _OrderPageState extends State<OrderPage> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "+7 999 999-99-99",
+                                        "${orders[chosenIndex]['order']['client']['main_phone']}",
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold,
@@ -252,25 +252,28 @@ class _OrderPageState extends State<OrderPage> {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Container(
-                        child: ListTile(
-                          title: Text(
-                            "Комментарий ресторана:",
-                            style: TextStyle(
-                              color: Color(0xFFB8BAB8),
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.bold,
+                    Visibility(
+                      visible: orders[chosenIndex]['order']['client']['comment'] != "" ? true : false,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: Container(
+                          child: ListTile(
+                            title: Text(
+                              "Комментарий ресторана:",
+                              style: TextStyle(
+                                color: Color(0xFFB8BAB8),
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          subtitle: Text(
-                            "Nn kjfmvkmfvklfmv,nvnmknlkfdnvkfd vjfdnvjfdnvhjdfbnvkfdbvkjfdbvjhfdnvkjdbvksdnbv",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 14.0,
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.bold,
+                            subtitle: Text(
+                              "${orders[chosenIndex]['order']['client']['comment']}",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14.0,
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -313,7 +316,7 @@ class _OrderPageState extends State<OrderPage> {
                             ),
                           ),
                           subtitle: Text(
-                            "Nn kjfmvkmfvklfmv,nvnmknlkfdnvkfd vjfdnvjfdnvhjdfbnvkfdbvkjfdbvjhfdnvkjdbvksdnbv",
+                            "Сумма по заказу: ${orders[chosenIndex]['order']['tariff']['total_price']}₽\nБезналичная оплата в ресторане\nБезналичная оплата клиентом\nБез сдачи клиенту",
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 14.0,

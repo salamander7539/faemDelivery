@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:device_id/device_id.dart';
 import 'package:faem_delivery/deliveryJson/deliver_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -16,17 +14,16 @@ class AuthPhoneScreen extends StatefulWidget {
 }
 
 class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
-
   TextEditingController textEditingController = TextEditingController();
   MaskTextInputFormatter maskTextInputFormatter = MaskTextInputFormatter(
       mask: "+# ### ###-##-##", filter: {"#": RegExp(r'[0-9]')});
   Color buttonPhoneColor, buttonPhoneTextColor;
-  bool buttonPhoneEnable;
+  bool buttonPhoneEnable, phoneWarning;
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   Future _showNotification(Map<String, dynamic> message) async {
     var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
@@ -38,7 +35,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
     );
 
     var platformChannelSpecifics =
-    new NotificationDetails(androidPlatformChannelSpecifics, null);
+        new NotificationDetails(androidPlatformChannelSpecifics, null);
     await flutterLocalNotificationsPlugin.show(
       0,
       message['notification']['title'],
@@ -58,15 +55,19 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
     await flutterLocalNotificationsPlugin.cancelAll();
   }
 
+
+
   @override
   void initState() {
+    super.initState();
     buttonPhoneColor = Color(0xFFF3F3F3);
     buttonPhoneTextColor = Colors.black;
+    phoneWarning = false;
     buttonPhoneEnable = true;
     var initializationSettingsAndroid =
-    AndroidInitializationSettings('app_icon');
+        AndroidInitializationSettings('app_icon');
     var initializationSettings =
-    InitializationSettings(initializationSettingsAndroid, null);
+        InitializationSettings(initializationSettingsAndroid, null);
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: selectNotification);
     _firebaseMessaging.configure(
@@ -86,7 +87,6 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
       },
     );
     getToken();
-    super.initState();
   }
 
   @override
@@ -98,8 +98,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
             Icons.menu,
             color: Colors.black,
           ),
-          onPressed: () {
-          },
+          onPressed: () {},
         ),
         backgroundColor: Colors.white,
         title: Text(
@@ -173,14 +172,28 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                             buttonPhoneColor = Color(0xFFFD6F6D);
                             buttonPhoneTextColor = Colors.white;
                             buttonPhoneEnable = false;
-                          }
-                          else {
+                          } else {
                             buttonPhoneColor = Color(0xFFF3F3F3);
                             buttonPhoneTextColor = Colors.black;
                             buttonPhoneEnable = true;
+                            phoneWarning = false;
                           }
                         });
                       },
+                    ),
+                    Visibility(
+                      visible: phoneWarning,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          child: Text(
+                            "Указан неверный номер",
+                            style: TextStyle(
+                                color: Color(0xFFEE4D3F),
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -214,13 +227,11 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                     absorbing: buttonPhoneEnable,
                     child: Container(
                       child: SizedBox(
-                        width: MediaQuery
-                            .of(context)
-                            .size
-                            .width * 0.95,
+                        width: MediaQuery.of(context).size.width * 0.95,
                         child: FlatButton(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(11.0)),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(11.0)),
                           ),
                           color: buttonPhoneColor,
                           child: Padding(
@@ -236,11 +247,18 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                           ),
                           onPressed: () async {
                             if (textEditingController.text.length == 16) {
-                              phone = "+${maskTextInputFormatter.getUnmaskedText()}";
+                              phone =
+                                  "+${maskTextInputFormatter.getUnmaskedText()}";
                               deviceId = await DeviceId.getID;
                               print(deviceId);
                               await loadAuthData(deviceId, phone);
-                              Navigator.pushNamed(context, "/authCodePage");
+                              if (respCode == 200) {
+                                Navigator.pushNamed(context, "/authCodePage");
+                              } else {
+                                setState(() {
+                                  phoneWarning = true;
+                                });
+                              }
                             }
                           },
                         ),

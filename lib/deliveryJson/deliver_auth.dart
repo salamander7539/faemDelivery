@@ -17,6 +17,7 @@ Future<AuthData> loadAuthData(String deviceId, String phone) async {
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
     authData = new AuthData.fromJson(jsonResponse);
+    respCode = response.statusCode;
     print(response.body);
   } else {
     print('Request failed with status: ${response.statusCode}.');

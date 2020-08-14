@@ -4,25 +4,47 @@ import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pin_input_text_field/pin_input_text_field.dart';
+import 'package:geolocator/geolocator.dart';
 
 class AuthCodeScreen extends StatefulWidget {
   @override
   _AuthCodeScreenState createState() => _AuthCodeScreenState();
 }
 
+final Stopwatch stopwatch = new Stopwatch();
+var milliseconds;
+Position currentPosition;
+
 String pin;
 
 class _AuthCodeScreenState extends State<AuthCodeScreen> {
   TextEditingController pinController = new TextEditingController();
   Color buttonCodeColor, buttonCodeTextColor;
-  bool buttonCodeEnable;
+  bool buttonCodeEnable, smsWarning;
+
+  _getCurrentLocation() {
+    geolocator
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
+        .then((Position position) {
+      setState(() {
+        currentPosition = position;
+      });
+      print("lat: ${currentPosition.latitude}, lng: ${currentPosition.longitude}");
+      //_getAddressFromLatLng();
+    }).catchError((e) {
+      print(e);
+    });
+  }
+
+  final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
 
   @override
   void initState() {
+    super.initState();
     buttonCodeColor = Color(0xFFF3F3F3);
     buttonCodeTextColor = Colors.black;
     buttonCodeEnable = true;
-    super.initState();
+    smsWarning = false;
   }
 
   @override
@@ -100,14 +122,28 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                                   buttonCodeColor = Color(0xFFFD6F6D);
                                   buttonCodeTextColor = Colors.white;
                                   buttonCodeEnable = false;
-                                }
-                                else {
+                                } else {
                                   buttonCodeColor = Color(0xFFF3F3F3);
                                   buttonCodeTextColor = Colors.black;
                                   buttonCodeEnable = true;
+                                  smsWarning = false;
                                 }
                               });
                             },
+                          ),
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: smsWarning,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          child: Text(
+                            "Вы ввели неверный смс код",
+                            style: TextStyle(
+                                color: Color(0xFFEE4D3F),
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -147,7 +183,8 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                         width: MediaQuery.of(context).size.width * 0.95,
                         child: FlatButton(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(11.0)),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(11.0)),
                           ),
                           color: buttonCodeColor,
                           child: Padding(
@@ -165,8 +202,18 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                             if (pin.length == 4) {
                               await loadCode(phone, pin);
                               await updateRefreshToken(refToken);
-                              if (status == 200)
+                              if (status == 200) {
+                                stopwatch.start();
+                                _getCurrentLocation();
+                                stopwatch.stop();
+                                milliseconds = stopwatch.elapsedMicroseconds;
+                                print("time: $milliseconds ");
                                 Navigator.pushNamed(context, "/deliveryPage");
+                              } else {
+                                setState(() {
+                                  smsWarning = true;
+                                });
+                              }
                             }
                           },
                         ),
