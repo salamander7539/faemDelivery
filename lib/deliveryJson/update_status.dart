@@ -1,15 +1,20 @@
+import 'package:faem_delivery/deliveryJson/get_init_data.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
-Future<void> getStatusOrder(String orderStatus, String offerUuid) async {
+var message;
+
+Future<int> getStatusOrder(
+    String orderStatus, String offerUuid, int arrivalTime, var distance) async {
   var url = 'https://driver.apis.stage.faem.pro/api/v2/order';
   var body = json.encode({
     "state": orderStatus,
     "offer_uuid": offerUuid,
-    "time_arrival": 123421356,
-    "msg": "опциональный мессадж"
+    "time_arrival": arrivalTime,
+    "confirm_distance": distance,
+    "msg": ""
   });
   var response = await http.post(url, body: body, headers: <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
@@ -17,15 +22,22 @@ Future<void> getStatusOrder(String orderStatus, String offerUuid) async {
   });
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
-    print(response.body);
+    //print("STATUS: ${response.body}");
+  } else if (response.statusCode == 406 && deliverStatus == 'order_payment') {
+    var jsonResponse = json.decode(response.body);
+    distanceToSecondPoint = jsonResponse['distance_to_target'];
+    message = jsonResponse['message'];
   } else {
-    print('Request failed with status: ${response.statusCode}.');
+    print('Request update failed with status: ${response.statusCode}.');
     print(response.body);
   }
+  print('update: $body');
+  print(response.body);
+  return response.statusCode;
 }
 
-
-OrderState orderStateFromJson(String str) => OrderState.fromJson(json.decode(str));
+OrderState orderStateFromJson(String str) =>
+    OrderState.fromJson(json.decode(str));
 
 String orderStateToJson(OrderState data) => json.encode(data.toJson());
 
@@ -41,16 +53,16 @@ class OrderState {
   final StatusState state;
 
   factory OrderState.fromJson(Map<String, dynamic> json) => OrderState(
-    code: json["code"],
-    message: json["message"],
-    state: StatusState.fromJson(json["state"]),
-  );
+        code: json["code"],
+        message: json["message"],
+        state: StatusState.fromJson(json["state"]),
+      );
 
   Map<String, dynamic> toJson() => {
-    "code": code,
-    "message": message,
-    "state": state.toJson(),
-  };
+        "code": code,
+        "message": message,
+        "state": state.toJson(),
+      };
 }
 
 class StatusState {
@@ -63,12 +75,12 @@ class StatusState {
   final String message;
 
   factory StatusState.fromJson(Map<String, dynamic> json) => StatusState(
-    value: json["value"],
-    message: json["message"],
-  );
+        value: json["value"],
+        message: json["message"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "value": value,
-    "message": message,
-  };
+        "value": value,
+        "message": message,
+      };
 }

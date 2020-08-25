@@ -21,7 +21,7 @@ Future<void> sendLocation() async {
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
     var deliverInitData = new Location.fromJson(jsonResponse);
-    print(response.body);
+    print("Location: ${response.body}");
   } else {
     print('Request failed with status: ${response.statusCode}.');
     print(response.body);

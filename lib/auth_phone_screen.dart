@@ -23,7 +23,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin();
 
   Future _showNotification(Map<String, dynamic> message) async {
     var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
@@ -35,7 +35,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
     );
 
     var platformChannelSpecifics =
-        new NotificationDetails(androidPlatformChannelSpecifics, null);
+    new NotificationDetails(androidPlatformChannelSpecifics, null);
     await flutterLocalNotificationsPlugin.show(
       0,
       message['notification']['title'],
@@ -55,8 +55,6 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
     await flutterLocalNotificationsPlugin.cancelAll();
   }
 
-
-
   @override
   void initState() {
     super.initState();
@@ -72,12 +70,9 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
         onSelectNotification: selectNotification);
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-        setState(() {
-//          var data = message['data'];
-//          var payload = json.decode(data['payload']);
-//          answerOrderState = payload['state_title'];
-//          print("ANSWER: $answerOrderState");
-        });
+        print("onMessage: $message");
+        var notification = message['notification'];
+        print('Notification: ${notification['body']}');
       },
       onResume: (Map<String, dynamic> message) async {
         print("onResume: $message");

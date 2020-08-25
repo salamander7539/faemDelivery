@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:async';
 
 var orderDetail;
+List products = [];
 
 Future<Null> getDetailOrdersData(var uuid) async {
   var url = 'https://driver.apis.stage.faem.pro/api/v2/freeorder/$uuid';
@@ -13,12 +14,20 @@ Future<Null> getDetailOrdersData(var uuid) async {
   });
   if (response.statusCode == 200) {
     orderDetail = json.decode(response.body);
-    print(response.body);
+    if (orderDetail['order']['products_data'] != null) {
+      products = orderDetail['order']['products_data']['products'];
+    } else {
+      products = orderDetail['order']['products_data'];
+    }
+    //print(response.body);
   } else {
     print("Error order with code ${response.statusCode}");
     print(response.body);
   }
 }
+// To parse this JSON data, do
+//
+//     final order = orderFromJson(jsonString);
 
 Order orderFromJson(String str) => Order.fromJson(json.decode(str));
 
@@ -26,66 +35,209 @@ String orderToJson(Order data) => json.encode(data.toJson());
 
 class Order {
   Order({
-    this.clientUuid,
-    this.clientPhone,
-    this.ordersData,
+    this.offer,
+    this.order,
+    this.taximeter,
   });
 
-  final String clientUuid;
-  final String clientPhone;
-  final List<OrdersDatum> ordersData;
+  final Offer offer;
+  final OrderClass order;
+  final Taximeter taximeter;
 
   factory Order.fromJson(Map<String, dynamic> json) => Order(
-    clientUuid: json["client_uuid"],
-    clientPhone: json["client_phone"],
-    ordersData: List<OrdersDatum>.from(json["orders_data"].map((x) => OrdersDatum.fromJson(x))),
-  );
+        offer: Offer.fromJson(json["offer"]),
+        order: OrderClass.fromJson(json["order"]),
+        taximeter: Taximeter.fromJson(json["taximeter"]),
+      );
 
   Map<String, dynamic> toJson() => {
-    "client_uuid": clientUuid,
-    "client_phone": clientPhone,
-    "orders_data": List<dynamic>.from(ordersData.map((x) => x.toJson())),
-  };
+        "offer": offer.toJson(),
+        "order": order.toJson(),
+        "taximeter": taximeter.toJson(),
+      };
 }
 
-class OrdersDatum {
-  OrdersDatum({
+class Offer {
+  Offer({
+    this.uuid,
+    this.driverUuid,
+    this.orderUuid,
+    this.offerType,
+    this.responseTime,
+    this.driverId,
+    this.comment,
+    this.tripTime,
+    this.isFree,
+    this.activity,
+    this.routeToClient,
+    this.arrivalTime,
+  });
+
+  final String uuid;
+  final String driverUuid;
+  final String orderUuid;
+  final String offerType;
+  final int responseTime;
+  final int driverId;
+  final String comment;
+  final int tripTime;
+  final bool isFree;
+  final Activity activity;
+  final RouteToClient routeToClient;
+  final int arrivalTime;
+
+  factory Offer.fromJson(Map<String, dynamic> json) => Offer(
+        uuid: json["uuid"],
+        driverUuid: json["driver_uuid"],
+        orderUuid: json["order_uuid"],
+        offerType: json["offer_type"],
+        responseTime: json["response_time"],
+        driverId: json["driver_id"],
+        comment: json["comment"],
+        tripTime: json["trip_time"],
+        isFree: json["is_free"],
+        activity: Activity.fromJson(json["activity"]),
+        routeToClient: RouteToClient.fromJson(json["route_to_client"]),
+        arrivalTime: json["arrival_time"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "uuid": uuid,
+        "driver_uuid": driverUuid,
+        "order_uuid": orderUuid,
+        "offer_type": offerType,
+        "response_time": responseTime,
+        "driver_id": driverId,
+        "comment": comment,
+        "trip_time": tripTime,
+        "is_free": isFree,
+        "activity": activity.toJson(),
+        "route_to_client": routeToClient.toJson(),
+        "arrival_time": arrivalTime,
+      };
+}
+
+class Activity {
+  Activity({
+    this.accept,
+    this.reject,
+  });
+
+  final int accept;
+  final int reject;
+
+  factory Activity.fromJson(Map<String, dynamic> json) => Activity(
+        accept: json["accept"],
+        reject: json["reject"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "accept": accept,
+        "reject": reject,
+      };
+}
+
+class RouteToClient {
+  RouteToClient({
+    this.geometry,
+    this.type,
+    this.properties,
+  });
+
+  final RouteToClientGeometry geometry;
+  final String type;
+  final RouteToClientProperties properties;
+
+  factory RouteToClient.fromJson(Map<String, dynamic> json) => RouteToClient(
+        geometry: RouteToClientGeometry.fromJson(json["geometry"]),
+        type: json["type"],
+        properties: RouteToClientProperties.fromJson(json["properties"]),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "geometry": geometry.toJson(),
+        "type": type,
+        "properties": properties.toJson(),
+      };
+}
+
+class RouteToClientGeometry {
+  RouteToClientGeometry({
+    this.coordinates,
+    this.type,
+  });
+
+  final List<List<double>> coordinates;
+  final String type;
+
+  factory RouteToClientGeometry.fromJson(Map<String, dynamic> json) =>
+      RouteToClientGeometry(
+        coordinates: List<List<double>>.from(json["coordinates"]
+            .map((x) => List<double>.from(x.map((x) => x.toDouble())))),
+        type: json["type"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "coordinates": List<dynamic>.from(
+            coordinates.map((x) => List<dynamic>.from(x.map((x) => x)))),
+        "type": type,
+      };
+}
+
+class RouteToClientProperties {
+  RouteToClientProperties({
+    this.duration,
+    this.distance,
+  });
+
+  final int duration;
+  final double distance;
+
+  factory RouteToClientProperties.fromJson(Map<String, dynamic> json) =>
+      RouteToClientProperties(
+        duration: json["duration"],
+        distance: json["distance"].toDouble(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "duration": duration,
+        "distance": distance,
+      };
+}
+
+class OrderClass {
+  OrderClass({
     this.uuid,
     this.comment,
     this.routes,
     this.routeWayData,
     this.features,
     this.tariff,
+    this.phoneLine,
     this.fixedPrice,
     this.service,
     this.increasedFare,
     this.driver,
-    this.owner,
     this.client,
     this.source,
     this.driverRating,
     this.clientRating,
     this.isOptional,
     this.withoutDelivery,
+    this.ownDelivery,
     this.orderStart,
     this.cancelTime,
+    this.createdAt,
+    this.distributionByTaxiPark,
     this.promotion,
     this.arrivalTime,
     this.productsData,
+    this.callbackPhone,
     this.paymentType,
     this.paymentMeta,
-    this.id,
-    this.clientUuid,
-    this.serviceUuid,
-    this.callbackPhone,
-    this.featuresUuids,
-    this.createdAt,
-    this.createdAtUnix,
-    this.updatedAt,
-    this.visibility,
-    this.state,
-    this.stateTitle,
-    this.driverLocation,
+    this.estimatedDeliveryTime,
+    this.taxiParkData,
+    this.taxiParkUuid,
   });
 
   final String uuid;
@@ -93,115 +245,100 @@ class OrdersDatum {
   final List<Route> routes;
   final RouteWayData routeWayData;
   final dynamic features;
-  final OrdersDatumTariff tariff;
+  final OrderTariff tariff;
+  final PhoneLine phoneLine;
   final int fixedPrice;
   final Service service;
   final int increasedFare;
   final Driver driver;
-  final Owner owner;
   final Client client;
   final String source;
   final Rating driverRating;
   final Rating clientRating;
   final bool isOptional;
   final bool withoutDelivery;
+  final bool ownDelivery;
   final DateTime orderStart;
   final DateTime cancelTime;
-  final OrdersDatumPromotion promotion;
+  final DateTime createdAt;
+  final dynamic distributionByTaxiPark;
+  final OrderPromotion promotion;
   final int arrivalTime;
   final ProductsData productsData;
+  final String callbackPhone;
   final String paymentType;
   final PaymentMeta paymentMeta;
-  final int id;
-  final String clientUuid;
-  final String serviceUuid;
-  final String callbackPhone;
-  final dynamic featuresUuids;
-  final DateTime createdAt;
-  final int createdAtUnix;
-  final DateTime updatedAt;
-  final bool visibility;
-  final String state;
-  final String stateTitle;
-  final DriverLocation driverLocation;
+  final DateTime estimatedDeliveryTime;
+  final TaxiParkData taxiParkData;
+  final String taxiParkUuid;
 
-  factory OrdersDatum.fromJson(Map<String, dynamic> json) => OrdersDatum(
-    uuid: json["uuid"],
-    comment: json["comment"],
-    routes: List<Route>.from(json["routes"].map((x) => Route.fromJson(x))),
-    routeWayData: RouteWayData.fromJson(json["route_way_data"]),
-    features: json["features"],
-    tariff: OrdersDatumTariff.fromJson(json["tariff"]),
-    fixedPrice: json["fixed_price"],
-    service: Service.fromJson(json["service"]),
-    increasedFare: json["increased_fare"],
-    driver: Driver.fromJson(json["driver"]),
-    owner: Owner.fromJson(json["owner"]),
-    client: Client.fromJson(json["client"]),
-    source: json["source"],
-    driverRating: Rating.fromJson(json["driver_rating"]),
-    clientRating: Rating.fromJson(json["client_rating"]),
-    isOptional: json["is_optional"],
-    withoutDelivery: json["without_delivery"],
-    orderStart: DateTime.parse(json["order_start"]),
-    cancelTime: DateTime.parse(json["cancel_time"]),
-    promotion: OrdersDatumPromotion.fromJson(json["promotion"]),
-    arrivalTime: json["arrival_time"],
-    productsData: ProductsData.fromJson(json["products_data"]),
-    paymentType: json["payment_type"],
-    paymentMeta: PaymentMeta.fromJson(json["payment_meta"]),
-    id: json["id"],
-    clientUuid: json["client_uuid"],
-    serviceUuid: json["service_uuid"],
-    callbackPhone: json["callback_phone"],
-    featuresUuids: json["features_uuids"],
-    createdAt: DateTime.parse(json["created_at"]),
-    createdAtUnix: json["created_at_unix"],
-    updatedAt: DateTime.parse(json["updated_at"]),
-    visibility: json["visibility"],
-    state: json["state"],
-    stateTitle: json["state_title"],
-    driverLocation: DriverLocation.fromJson(json["driver_location"]),
-  );
+  factory OrderClass.fromJson(Map<String, dynamic> json) => OrderClass(
+        uuid: json["uuid"],
+        comment: json["comment"],
+        routes: List<Route>.from(json["routes"].map((x) => Route.fromJson(x))),
+        routeWayData: RouteWayData.fromJson(json["route_way_data"]),
+        features: json["features"],
+        tariff: OrderTariff.fromJson(json["tariff"]),
+        phoneLine: PhoneLine.fromJson(json["phone_line"]),
+        fixedPrice: json["fixed_price"],
+        service: Service.fromJson(json["service"]),
+        increasedFare: json["increased_fare"],
+        driver: Driver.fromJson(json["driver"]),
+        client: Client.fromJson(json["client"]),
+        source: json["source"],
+        driverRating: Rating.fromJson(json["driver_rating"]),
+        clientRating: Rating.fromJson(json["client_rating"]),
+        isOptional: json["is_optional"],
+        withoutDelivery: json["without_delivery"],
+        ownDelivery: json["own_delivery"],
+        orderStart: DateTime.parse(json["order_start"]),
+        cancelTime: DateTime.parse(json["cancel_time"]),
+        createdAt: DateTime.parse(json["created_at"]),
+        distributionByTaxiPark: json["distribution_by_taxi_park"],
+        promotion: OrderPromotion.fromJson(json["promotion"]),
+        arrivalTime: json["arrival_time"],
+        productsData: ProductsData.fromJson(json["products_data"]),
+        callbackPhone: json["callback_phone"],
+        paymentType: json["payment_type"],
+        paymentMeta: PaymentMeta.fromJson(json["payment_meta"]),
+        estimatedDeliveryTime: DateTime.parse(json["estimated_delivery_time"]),
+        taxiParkData: TaxiParkData.fromJson(json["taxi_park_data"]),
+        taxiParkUuid: json["taxi_park_uuid"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "comment": comment,
-    "routes": List<dynamic>.from(routes.map((x) => x.toJson())),
-    "route_way_data": routeWayData.toJson(),
-    "features": features,
-    "tariff": tariff.toJson(),
-    "fixed_price": fixedPrice,
-    "service": service.toJson(),
-    "increased_fare": increasedFare,
-    "driver": driver.toJson(),
-    "owner": owner.toJson(),
-    "client": client.toJson(),
-    "source": source,
-    "driver_rating": driverRating.toJson(),
-    "client_rating": clientRating.toJson(),
-    "is_optional": isOptional,
-    "without_delivery": withoutDelivery,
-    "order_start": orderStart.toIso8601String(),
-    "cancel_time": cancelTime.toIso8601String(),
-    "promotion": promotion.toJson(),
-    "arrival_time": arrivalTime,
-    "products_data": productsData.toJson(),
-    "payment_type": paymentType,
-    "payment_meta": paymentMeta.toJson(),
-    "id": id,
-    "client_uuid": clientUuid,
-    "service_uuid": serviceUuid,
-    "callback_phone": callbackPhone,
-    "features_uuids": featuresUuids,
-    "created_at": createdAt.toIso8601String(),
-    "created_at_unix": createdAtUnix,
-    "updated_at": updatedAt.toIso8601String(),
-    "visibility": visibility,
-    "state": state,
-    "state_title": stateTitle,
-    "driver_location": driverLocation.toJson(),
-  };
+        "uuid": uuid,
+        "comment": comment,
+        "routes": List<dynamic>.from(routes.map((x) => x.toJson())),
+        "route_way_data": routeWayData.toJson(),
+        "features": features,
+        "tariff": tariff.toJson(),
+        "phone_line": phoneLine.toJson(),
+        "fixed_price": fixedPrice,
+        "service": service.toJson(),
+        "increased_fare": increasedFare,
+        "driver": driver.toJson(),
+        "client": client.toJson(),
+        "source": source,
+        "driver_rating": driverRating.toJson(),
+        "client_rating": clientRating.toJson(),
+        "is_optional": isOptional,
+        "without_delivery": withoutDelivery,
+        "own_delivery": ownDelivery,
+        "order_start": orderStart.toIso8601String(),
+        "cancel_time": cancelTime.toIso8601String(),
+        "created_at": createdAt.toIso8601String(),
+        "distribution_by_taxi_park": distributionByTaxiPark,
+        "promotion": promotion.toJson(),
+        "arrival_time": arrivalTime,
+        "products_data": productsData.toJson(),
+        "callback_phone": callbackPhone,
+        "payment_type": paymentType,
+        "payment_meta": paymentMeta.toJson(),
+        "estimated_delivery_time": estimatedDeliveryTime.toIso8601String(),
+        "taxi_park_data": taxiParkData.toJson(),
+        "taxi_park_uuid": taxiParkUuid,
+      };
 }
 
 class Client {
@@ -216,6 +353,7 @@ class Client {
     this.telegramId,
     this.comment,
     this.activity,
+    this.defaultPaymentType,
     this.promotion,
     this.blacklist,
   });
@@ -230,38 +368,41 @@ class Client {
   final String telegramId;
   final String comment;
   final int activity;
+  final String defaultPaymentType;
   final ClientPromotion promotion;
   final dynamic blacklist;
 
   factory Client.fromJson(Map<String, dynamic> json) => Client(
-    uuid: json["uuid"],
-    name: json["name"],
-    karma: json["karma"],
-    mainPhone: json["main_phone"],
-    blocked: json["blocked"],
-    phones: json["phones"],
-    deviceId: json["device_id"],
-    telegramId: json["telegram_id"],
-    comment: json["comment"],
-    activity: json["activity"],
-    promotion: ClientPromotion.fromJson(json["promotion"]),
-    blacklist: json["blacklist"],
-  );
+        uuid: json["uuid"],
+        name: json["name"],
+        karma: json["karma"],
+        mainPhone: json["main_phone"],
+        blocked: json["blocked"],
+        phones: json["phones"],
+        deviceId: json["device_id"],
+        telegramId: json["telegram_id"],
+        comment: json["comment"],
+        activity: json["activity"],
+        defaultPaymentType: json["default_payment_type"],
+        promotion: ClientPromotion.fromJson(json["promotion"]),
+        blacklist: json["blacklist"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "name": name,
-    "karma": karma,
-    "main_phone": mainPhone,
-    "blocked": blocked,
-    "phones": phones,
-    "device_id": deviceId,
-    "telegram_id": telegramId,
-    "comment": comment,
-    "activity": activity,
-    "promotion": promotion.toJson(),
-    "blacklist": blacklist,
-  };
+        "uuid": uuid,
+        "name": name,
+        "karma": karma,
+        "main_phone": mainPhone,
+        "blocked": blocked,
+        "phones": phones,
+        "device_id": deviceId,
+        "telegram_id": telegramId,
+        "comment": comment,
+        "activity": activity,
+        "default_payment_type": defaultPaymentType,
+        "promotion": promotion.toJson(),
+        "blacklist": blacklist,
+      };
 }
 
 class ClientPromotion {
@@ -273,15 +414,16 @@ class ClientPromotion {
   final bool booster;
   final bool isVip;
 
-  factory ClientPromotion.fromJson(Map<String, dynamic> json) => ClientPromotion(
-    booster: json["booster"],
-    isVip: json["is_vip"],
-  );
+  factory ClientPromotion.fromJson(Map<String, dynamic> json) =>
+      ClientPromotion(
+        booster: json["booster"],
+        isVip: json["is_vip"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "booster": booster,
-    "is_vip": isVip,
-  };
+        "booster": booster,
+        "is_vip": isVip,
+      };
 }
 
 class Rating {
@@ -294,14 +436,14 @@ class Rating {
   final String comment;
 
   factory Rating.fromJson(Map<String, dynamic> json) => Rating(
-    value: json["value"],
-    comment: json["comment"],
-  );
+        value: json["value"],
+        comment: json["comment"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "value": value,
-    "comment": comment,
-  };
+        "value": value,
+        "comment": comment,
+      };
 }
 
 class Driver {
@@ -314,7 +456,6 @@ class Driver {
     this.stateName,
     this.car,
     this.balance,
-    this.maxServiceLevel,
     this.karma,
     this.color,
     this.tariff,
@@ -327,161 +468,82 @@ class Driver {
     this.promotion,
     this.group,
     this.blacklist,
+    this.taxiParkData,
+    this.taxiParkUuid,
   });
 
   final String uuid;
   final String name;
-  final List<String> paymentTypes;
+  final dynamic paymentTypes;
   final String phone;
   final String comment;
   final String stateName;
   final String car;
   final int balance;
-  final int maxServiceLevel;
-  final double karma;
+  final int karma;
   final String color;
   final DriverTariff tariff;
-  final List<String> tag;
-  final List<AvailableService> availableServices;
-  final List<AvailableFeature> availableFeatures;
+  final dynamic tag;
+  final dynamic availableServices;
+  final dynamic availableFeatures;
   final int alias;
   final String regNumber;
   final int activity;
   final DriverPromotion promotion;
   final Group group;
   final dynamic blacklist;
+  final TaxiParkData taxiParkData;
+  final dynamic taxiParkUuid;
 
   factory Driver.fromJson(Map<String, dynamic> json) => Driver(
-    uuid: json["uuid"],
-    name: json["name"],
-    paymentTypes: List<String>.from(json["payment_types"].map((x) => x)),
-    phone: json["phone"],
-    comment: json["comment"],
-    stateName: json["state_name"],
-    car: json["car"],
-    balance: json["balance"],
-    maxServiceLevel: json["max_service_level"],
-    karma: json["karma"].toDouble(),
-    color: json["color"],
-    tariff: DriverTariff.fromJson(json["tariff"]),
-    tag: List<String>.from(json["tag"].map((x) => x)),
-    availableServices: List<AvailableService>.from(json["available_services"].map((x) => AvailableService.fromJson(x))),
-    availableFeatures: List<AvailableFeature>.from(json["available_features"].map((x) => AvailableFeature.fromJson(x))),
-    alias: json["alias"],
-    regNumber: json["reg_number"],
-    activity: json["activity"],
-    promotion: DriverPromotion.fromJson(json["promotion"]),
-    group: Group.fromJson(json["group"]),
-    blacklist: json["blacklist"],
-  );
+        uuid: json["uuid"],
+        name: json["name"],
+        paymentTypes: json["payment_types"],
+        phone: json["phone"],
+        comment: json["comment"],
+        stateName: json["state_name"],
+        car: json["car"],
+        balance: json["balance"],
+        karma: json["karma"],
+        color: json["color"],
+        tariff: DriverTariff.fromJson(json["tariff"]),
+        tag: json["tag"],
+        availableServices: json["available_services"],
+        availableFeatures: json["available_features"],
+        alias: json["alias"],
+        regNumber: json["reg_number"],
+        activity: json["activity"],
+        promotion: DriverPromotion.fromJson(json["promotion"]),
+        group: Group.fromJson(json["group"]),
+        blacklist: json["blacklist"],
+        taxiParkData: TaxiParkData.fromJson(json["taxi_park_data"]),
+        taxiParkUuid: json["taxi_park_uuid"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "name": name,
-    "payment_types": List<dynamic>.from(paymentTypes.map((x) => x)),
-    "phone": phone,
-    "comment": comment,
-    "state_name": stateName,
-    "car": car,
-    "balance": balance,
-    "max_service_level": maxServiceLevel,
-    "karma": karma,
-    "color": color,
-    "tariff": tariff.toJson(),
-    "tag": List<dynamic>.from(tag.map((x) => x)),
-    "available_services": List<dynamic>.from(availableServices.map((x) => x.toJson())),
-    "available_features": List<dynamic>.from(availableFeatures.map((x) => x.toJson())),
-    "alias": alias,
-    "reg_number": regNumber,
-    "activity": activity,
-    "promotion": promotion.toJson(),
-    "group": group.toJson(),
-    "blacklist": blacklist,
-  };
-}
-
-class AvailableFeature {
-  AvailableFeature({
-    this.uuid,
-    this.name,
-    this.comment,
-    this.price,
-    this.tag,
-    this.servicesUuid,
-  });
-
-  final String uuid;
-  final String name;
-  final String comment;
-  final int price;
-  final List<String> tag;
-  final List<String> servicesUuid;
-
-  factory AvailableFeature.fromJson(Map<String, dynamic> json) => AvailableFeature(
-    uuid: json["uuid"],
-    name: json["name"],
-    comment: json["comment"],
-    price: json["price"],
-    tag: List<String>.from(json["tag"].map((x) => x)),
-    servicesUuid: json["services_uuid"] == null ? null : List<String>.from(json["services_uuid"].map((x) => x)),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "name": name,
-    "comment": comment,
-    "price": price,
-    "tag": List<dynamic>.from(tag.map((x) => x)),
-    "services_uuid": servicesUuid == null ? null : List<dynamic>.from(servicesUuid.map((x) => x)),
-  };
-}
-
-class AvailableService {
-  AvailableService({
-    this.uuid,
-    this.name,
-    this.priceCoefficient,
-    this.freight,
-    this.productDelivery,
-    this.comment,
-    this.maxBonusPaymentPercent,
-    this.image,
-    this.tag,
-  });
-
-  final String uuid;
-  final String name;
-  final double priceCoefficient;
-  final bool freight;
-  final bool productDelivery;
-  final String comment;
-  final int maxBonusPaymentPercent;
-  final String image;
-  final List<String> tag;
-
-  factory AvailableService.fromJson(Map<String, dynamic> json) => AvailableService(
-    uuid: json["uuid"],
-    name: json["name"],
-    priceCoefficient: json["price_coefficient"].toDouble(),
-    freight: json["freight"],
-    productDelivery: json["product_delivery"],
-    comment: json["comment"],
-    maxBonusPaymentPercent: json["max_bonus_payment_percent"],
-    image: json["image"],
-    tag: List<String>.from(json["tag"].map((x) => x)),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "name": name,
-    "price_coefficient": priceCoefficient,
-    "freight": freight,
-    "product_delivery": productDelivery,
-    "comment": comment,
-    "max_bonus_payment_percent": maxBonusPaymentPercent,
-    "image": image,
-    "tag": List<dynamic>.from(tag.map((x) => x)),
-  };
+        "uuid": uuid,
+        "name": name,
+        "payment_types": paymentTypes,
+        "phone": phone,
+        "comment": comment,
+        "state_name": stateName,
+        "car": car,
+        "balance": balance,
+        "karma": karma,
+        "color": color,
+        "tariff": tariff.toJson(),
+        "tag": tag,
+        "available_services": availableServices,
+        "available_features": availableFeatures,
+        "alias": alias,
+        "reg_number": regNumber,
+        "activity": activity,
+        "promotion": promotion.toJson(),
+        "group": group.toJson(),
+        "blacklist": blacklist,
+        "taxi_park_data": taxiParkData.toJson(),
+        "taxi_park_uuid": taxiParkUuid,
+      };
 }
 
 class Group {
@@ -501,31 +563,31 @@ class Group {
   final String description;
   final int distributionWeight;
   final dynamic servicesUuid;
-  final List<String> tag;
+  final dynamic tag;
   final String defaultTariffUuid;
   final String defaultTariffOfflineUuid;
 
   factory Group.fromJson(Map<String, dynamic> json) => Group(
-    uuid: json["uuid"],
-    name: json["name"],
-    description: json["description"],
-    distributionWeight: json["distribution_weight"],
-    servicesUuid: json["services_uuid"],
-    tag: List<String>.from(json["tag"].map((x) => x)),
-    defaultTariffUuid: json["default_tariff_uuid"],
-    defaultTariffOfflineUuid: json["default_tariff_offline_uuid"],
-  );
+        uuid: json["uuid"],
+        name: json["name"],
+        description: json["description"],
+        distributionWeight: json["distribution_weight"],
+        servicesUuid: json["services_uuid"],
+        tag: json["tag"],
+        defaultTariffUuid: json["default_tariff_uuid"],
+        defaultTariffOfflineUuid: json["default_tariff_offline_uuid"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "name": name,
-    "description": description,
-    "distribution_weight": distributionWeight,
-    "services_uuid": servicesUuid,
-    "tag": List<dynamic>.from(tag.map((x) => x)),
-    "default_tariff_uuid": defaultTariffUuid,
-    "default_tariff_offline_uuid": defaultTariffOfflineUuid,
-  };
+        "uuid": uuid,
+        "name": name,
+        "description": description,
+        "distribution_weight": distributionWeight,
+        "services_uuid": servicesUuid,
+        "tag": tag,
+        "default_tariff_uuid": defaultTariffUuid,
+        "default_tariff_offline_uuid": defaultTariffOfflineUuid,
+      };
 }
 
 class DriverPromotion {
@@ -539,17 +601,18 @@ class DriverPromotion {
   final bool rentedAuto;
   final bool brandSticker;
 
-  factory DriverPromotion.fromJson(Map<String, dynamic> json) => DriverPromotion(
-    booster: json["booster"],
-    rentedAuto: json["rented_auto"],
-    brandSticker: json["brand_sticker"],
-  );
+  factory DriverPromotion.fromJson(Map<String, dynamic> json) =>
+      DriverPromotion(
+        booster: json["booster"],
+        rentedAuto: json["rented_auto"],
+        brandSticker: json["brand_sticker"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "booster": booster,
-    "rented_auto": rentedAuto,
-    "brand_sticker": brandSticker,
-  };
+        "booster": booster,
+        "rented_auto": rentedAuto,
+        "brand_sticker": brandSticker,
+      };
 }
 
 class DriverTariff {
@@ -572,7 +635,7 @@ class DriverTariff {
 
   final String uuid;
   final bool offline;
-  final List<String> driversGroupsUuid;
+  final dynamic driversGroupsUuid;
   final bool tariffDefault;
   final bool isSecret;
   final String tariffType;
@@ -586,86 +649,66 @@ class DriverTariff {
   final int payedAt;
 
   factory DriverTariff.fromJson(Map<String, dynamic> json) => DriverTariff(
-    uuid: json["uuid"],
-    offline: json["offline"],
-    driversGroupsUuid: List<String>.from(json["drivers_groups_uuid"].map((x) => x)),
-    tariffDefault: json["default"],
-    isSecret: json["is_secret"],
-    tariffType: json["tariff_type"],
-    name: json["name"],
-    comment: json["comment"],
-    color: json["color"],
-    rejExp: json["rej_exp"],
-    commExp: json["comm_exp"],
-    period: json["period"],
-    periodPrice: json["period_price"],
-    payedAt: json["payed_at"],
-  );
+        uuid: json["uuid"],
+        offline: json["offline"],
+        driversGroupsUuid: json["drivers_groups_uuid"],
+        tariffDefault: json["default"],
+        isSecret: json["is_secret"],
+        tariffType: json["tariff_type"],
+        name: json["name"],
+        comment: json["comment"],
+        color: json["color"],
+        rejExp: json["rej_exp"],
+        commExp: json["comm_exp"],
+        period: json["period"],
+        periodPrice: json["period_price"],
+        payedAt: json["payed_at"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "offline": offline,
-    "drivers_groups_uuid": List<dynamic>.from(driversGroupsUuid.map((x) => x)),
-    "default": tariffDefault,
-    "is_secret": isSecret,
-    "tariff_type": tariffType,
-    "name": name,
-    "comment": comment,
-    "color": color,
-    "rej_exp": rejExp,
-    "comm_exp": commExp,
-    "period": period,
-    "period_price": periodPrice,
-    "payed_at": payedAt,
-  };
+        "uuid": uuid,
+        "offline": offline,
+        "drivers_groups_uuid": driversGroupsUuid,
+        "default": tariffDefault,
+        "is_secret": isSecret,
+        "tariff_type": tariffType,
+        "name": name,
+        "comment": comment,
+        "color": color,
+        "rej_exp": rejExp,
+        "comm_exp": commExp,
+        "period": period,
+        "period_price": periodPrice,
+        "payed_at": payedAt,
+      };
 }
 
-class DriverLocation {
-  DriverLocation({
-    this.lat,
-    this.long,
-  });
-
-  final double lat;
-  final double long;
-
-  factory DriverLocation.fromJson(Map<String, dynamic> json) => DriverLocation(
-    lat: json["lat"].toDouble(),
-    long: json["long"].toDouble(),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "lat": lat,
-    "long": long,
-  };
-}
-
-class Owner {
-  Owner({
+class TaxiParkData {
+  TaxiParkData({
     this.uuid,
-    this.serviceUuid,
     this.name,
     this.comment,
+    this.regionUuid,
   });
 
   final String uuid;
-  final String serviceUuid;
   final String name;
   final String comment;
+  final String regionUuid;
 
-  factory Owner.fromJson(Map<String, dynamic> json) => Owner(
-    uuid: json["uuid"],
-    serviceUuid: json["service_uuid"],
-    name: json["name"],
-    comment: json["comment"],
-  );
+  factory TaxiParkData.fromJson(Map<String, dynamic> json) => TaxiParkData(
+        uuid: json["uuid"],
+        name: json["name"],
+        comment: json["comment"],
+        regionUuid: json["region_uuid"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "service_uuid": serviceUuid,
-    "name": name,
-    "comment": comment,
-  };
+        "uuid": uuid,
+        "name": name,
+        "comment": comment,
+        "region_uuid": regionUuid,
+      };
 }
 
 class PaymentMeta {
@@ -682,18 +725,46 @@ class PaymentMeta {
   final dynamic additionalData;
 
   factory PaymentMeta.fromJson(Map<String, dynamic> json) => PaymentMeta(
-    isPrepaid: json["_is_prepaid"],
-    receiptUrl: json["receipt_url"],
-    qrCodeUrl: json["qr_code_url"],
-    additionalData: json["additional_data"],
-  );
+        isPrepaid: json["_is_prepaid"],
+        receiptUrl: json["receipt_url"],
+        qrCodeUrl: json["qr_code_url"],
+        additionalData: json["additional_data"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "_is_prepaid": isPrepaid,
-    "receipt_url": receiptUrl,
-    "qr_code_url": qrCodeUrl,
-    "additional_data": additionalData,
-  };
+        "_is_prepaid": isPrepaid,
+        "receipt_url": receiptUrl,
+        "qr_code_url": qrCodeUrl,
+        "additional_data": additionalData,
+      };
+}
+
+class PhoneLine {
+  PhoneLine({
+    this.uuid,
+    this.serviceUuid,
+    this.name,
+    this.comment,
+  });
+
+  final String uuid;
+  final String serviceUuid;
+  final String name;
+  final String comment;
+
+  factory PhoneLine.fromJson(Map<String, dynamic> json) => PhoneLine(
+        uuid: json["uuid"],
+        serviceUuid: json["service_uuid"],
+        name: json["name"],
+        comment: json["comment"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "uuid": uuid,
+        "service_uuid": serviceUuid,
+        "name": name,
+        "comment": comment,
+      };
 }
 
 class ProductsData {
@@ -712,26 +783,28 @@ class ProductsData {
   final List<Product> products;
 
   factory ProductsData.fromJson(Map<String, dynamic> json) => ProductsData(
-    store: Store.fromJson(json["store"]),
-    preparationTime: json["preparation_time"],
-    buyout: json["buyout"],
-    orderNumberInStore: json["order_number_in_store"],
-    products: List<Product>.from(json["products"].map((x) => Product.fromJson(x))),
-  );
+        store: Store.fromJson(json["store"]),
+        preparationTime: json["preparation_time"],
+        buyout: json["buyout"],
+        orderNumberInStore: json["order_number_in_store"],
+        products: List<Product>.from(
+            json["products"].map((x) => Product.fromJson(x))),
+      );
 
   Map<String, dynamic> toJson() => {
-    "store": store.toJson(),
-    "preparation_time": preparationTime,
-    "buyout": buyout,
-    "order_number_in_store": orderNumberInStore,
-    "products": List<dynamic>.from(products.map((x) => x.toJson())),
-  };
+        "store": store.toJson(),
+        "preparation_time": preparationTime,
+        "buyout": buyout,
+        "order_number_in_store": orderNumberInStore,
+        "products": List<dynamic>.from(products.map((x) => x.toJson())),
+      };
 }
 
 class Product {
   Product({
     this.uuid,
     this.weight,
+    this.weightMeasure,
     this.name,
     this.comment,
     this.available,
@@ -745,6 +818,7 @@ class Product {
 
   final String uuid;
   final int weight;
+  final String weightMeasure;
   final String name;
   final String comment;
   final bool available;
@@ -756,32 +830,34 @@ class Product {
   final SelectedVariant selectedVariant;
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
-    uuid: json["uuid"],
-    weight: json["weight"],
-    name: json["name"],
-    comment: json["comment"],
-    available: json["available"],
-    price: json["price"],
-    image: json["image"],
-    storeUuid: json["store_uuid"],
-    toppings: json["toppings"],
-    number: json["number"],
-    selectedVariant: SelectedVariant.fromJson(json["selected_variant"]),
-  );
+        uuid: json["uuid"],
+        weight: json["weight"],
+        weightMeasure: json["weight_measure"],
+        name: json["name"],
+        comment: json["comment"],
+        available: json["available"],
+        price: json["price"],
+        image: json["image"],
+        storeUuid: json["store_uuid"],
+        toppings: json["toppings"],
+        number: json["number"],
+        selectedVariant: SelectedVariant.fromJson(json["selected_variant"]),
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "weight": weight,
-    "name": name,
-    "comment": comment,
-    "available": available,
-    "price": price,
-    "image": image,
-    "store_uuid": storeUuid,
-    "toppings": toppings,
-    "number": number,
-    "selected_variant": selectedVariant.toJson(),
-  };
+        "uuid": uuid,
+        "weight": weight,
+        "weight_measure": weightMeasure,
+        "name": name,
+        "comment": comment,
+        "available": available,
+        "price": price,
+        "image": image,
+        "store_uuid": storeUuid,
+        "toppings": toppings,
+        "number": number,
+        "selected_variant": selectedVariant.toJson(),
+      };
 }
 
 class SelectedVariant {
@@ -799,21 +875,22 @@ class SelectedVariant {
   final int price;
   final String comment;
 
-  factory SelectedVariant.fromJson(Map<String, dynamic> json) => SelectedVariant(
-    uuid: json["uuid"],
-    name: json["name"],
-    standard: json["standard"],
-    price: json["price"],
-    comment: json["comment"],
-  );
+  factory SelectedVariant.fromJson(Map<String, dynamic> json) =>
+      SelectedVariant(
+        uuid: json["uuid"],
+        name: json["name"],
+        standard: json["standard"],
+        price: json["price"],
+        comment: json["comment"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "name": name,
-    "standard": standard,
-    "price": price,
-    "comment": comment,
-  };
+        "uuid": uuid,
+        "name": name,
+        "standard": standard,
+        "price": price,
+        "comment": comment,
+      };
 }
 
 class Store {
@@ -821,6 +898,7 @@ class Store {
     this.uuid,
     this.name,
     this.phone,
+    this.staffPhones,
     this.comment,
     this.ownDelivery,
     this.image,
@@ -834,6 +912,7 @@ class Store {
   final String uuid;
   final String name;
   final String phone;
+  final dynamic staffPhones;
   final String comment;
   final bool ownDelivery;
   final String image;
@@ -844,32 +923,37 @@ class Store {
   final int orderPreparationTimeSecond;
 
   factory Store.fromJson(Map<String, dynamic> json) => Store(
-    uuid: json["uuid"],
-    name: json["name"],
-    phone: json["phone"],
-    comment: json["comment"],
-    ownDelivery: json["own_delivery"],
-    image: json["image"],
-    available: json["available"],
-    workSchedule: List<WorkSchedule>.from(json["work_schedule"].map((x) => WorkSchedule.fromJson(x))),
-    type: json["type"],
-    productCategory: List<String>.from(json["product_category"].map((x) => x)),
-    orderPreparationTimeSecond: json["order_preparation_time_second"],
-  );
+        uuid: json["uuid"],
+        name: json["name"],
+        phone: json["phone"],
+        staffPhones: json["staff_phones"],
+        comment: json["comment"],
+        ownDelivery: json["own_delivery"],
+        image: json["image"],
+        available: json["available"],
+        workSchedule: List<WorkSchedule>.from(
+            json["work_schedule"].map((x) => WorkSchedule.fromJson(x))),
+        type: json["type"],
+        productCategory:
+            List<String>.from(json["product_category"].map((x) => x)),
+        orderPreparationTimeSecond: json["order_preparation_time_second"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "name": name,
-    "phone": phone,
-    "comment": comment,
-    "own_delivery": ownDelivery,
-    "image": image,
-    "available": available,
-    "work_schedule": List<dynamic>.from(workSchedule.map((x) => x.toJson())),
-    "type": type,
-    "product_category": List<dynamic>.from(productCategory.map((x) => x)),
-    "order_preparation_time_second": orderPreparationTimeSecond,
-  };
+        "uuid": uuid,
+        "name": name,
+        "phone": phone,
+        "staff_phones": staffPhones,
+        "comment": comment,
+        "own_delivery": ownDelivery,
+        "image": image,
+        "available": available,
+        "work_schedule":
+            List<dynamic>.from(workSchedule.map((x) => x.toJson())),
+        "type": type,
+        "product_category": List<dynamic>.from(productCategory.map((x) => x)),
+        "order_preparation_time_second": orderPreparationTimeSecond,
+      };
 }
 
 class WorkSchedule {
@@ -886,22 +970,22 @@ class WorkSchedule {
   final int workEnding;
 
   factory WorkSchedule.fromJson(Map<String, dynamic> json) => WorkSchedule(
-    weekDay: json["week_day"],
-    dayOff: json["day_off"],
-    workBeginning: json["work_beginning"],
-    workEnding: json["work_ending"],
-  );
+        weekDay: json["week_day"],
+        dayOff: json["day_off"],
+        workBeginning: json["work_beginning"],
+        workEnding: json["work_ending"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "week_day": weekDay,
-    "day_off": dayOff,
-    "work_beginning": workBeginning,
-    "work_ending": workEnding,
-  };
+        "week_day": weekDay,
+        "day_off": dayOff,
+        "work_beginning": workBeginning,
+        "work_ending": workEnding,
+      };
 }
 
-class OrdersDatumPromotion {
-  OrdersDatumPromotion({
+class OrderPromotion {
+  OrderPromotion({
     this.isVip,
     this.isUnpaid,
   });
@@ -909,15 +993,15 @@ class OrdersDatumPromotion {
   final bool isVip;
   final bool isUnpaid;
 
-  factory OrdersDatumPromotion.fromJson(Map<String, dynamic> json) => OrdersDatumPromotion(
-    isVip: json["is_vip"],
-    isUnpaid: json["is_unpaid"],
-  );
+  factory OrderPromotion.fromJson(Map<String, dynamic> json) => OrderPromotion(
+        isVip: json["is_vip"],
+        isUnpaid: json["is_unpaid"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "is_vip": isVip,
-    "is_unpaid": isUnpaid,
-  };
+        "is_vip": isVip,
+        "is_unpaid": isUnpaid,
+      };
 }
 
 class RouteWayData {
@@ -927,21 +1011,23 @@ class RouteWayData {
     this.steps,
   });
 
-  final Routes routes;
+  final RouteToClient routes;
   final RouteFromDriverToClient routeFromDriverToClient;
-  final List<Step> steps;
+  final List<RouteToClient> steps;
 
   factory RouteWayData.fromJson(Map<String, dynamic> json) => RouteWayData(
-    routes: Routes.fromJson(json["routes"]),
-    routeFromDriverToClient: RouteFromDriverToClient.fromJson(json["route_from_driver_to_client"]),
-    steps: List<Step>.from(json["steps"].map((x) => Step.fromJson(x))),
-  );
+        routes: RouteToClient.fromJson(json["routes"]),
+        routeFromDriverToClient: RouteFromDriverToClient.fromJson(
+            json["route_from_driver_to_client"]),
+        steps: List<RouteToClient>.from(
+            json["steps"].map((x) => RouteToClient.fromJson(x))),
+      );
 
   Map<String, dynamic> toJson() => {
-    "routes": routes.toJson(),
-    "route_from_driver_to_client": routeFromDriverToClient.toJson(),
-    "steps": List<dynamic>.from(steps.map((x) => x.toJson())),
-  };
+        "routes": routes.toJson(),
+        "route_from_driver_to_client": routeFromDriverToClient.toJson(),
+        "steps": List<dynamic>.from(steps.map((x) => x.toJson())),
+      };
 }
 
 class RouteFromDriverToClient {
@@ -951,41 +1037,44 @@ class RouteFromDriverToClient {
     this.properties,
   });
 
-  final Geometry geometry;
+  final RouteFromDriverToClientGeometry geometry;
   final String type;
   final RouteFromDriverToClientProperties properties;
 
-  factory RouteFromDriverToClient.fromJson(Map<String, dynamic> json) => RouteFromDriverToClient(
-    geometry: Geometry.fromJson(json["geometry"]),
-    type: json["type"],
-    properties: RouteFromDriverToClientProperties.fromJson(json["properties"]),
-  );
+  factory RouteFromDriverToClient.fromJson(Map<String, dynamic> json) =>
+      RouteFromDriverToClient(
+        geometry: RouteFromDriverToClientGeometry.fromJson(json["geometry"]),
+        type: json["type"],
+        properties:
+            RouteFromDriverToClientProperties.fromJson(json["properties"]),
+      );
 
   Map<String, dynamic> toJson() => {
-    "geometry": geometry.toJson(),
-    "type": type,
-    "properties": properties.toJson(),
-  };
+        "geometry": geometry.toJson(),
+        "type": type,
+        "properties": properties.toJson(),
+      };
 }
 
-class Geometry {
-  Geometry({
+class RouteFromDriverToClientGeometry {
+  RouteFromDriverToClientGeometry({
     this.coordinates,
     this.type,
   });
 
-  final List<List<double>> coordinates;
+  final dynamic coordinates;
   final String type;
 
-  factory Geometry.fromJson(Map<String, dynamic> json) => Geometry(
-    coordinates: List<List<double>>.from(json["coordinates"].map((x) => List<double>.from(x.map((x) => x.toDouble())))),
-    type: json["type"],
-  );
+  factory RouteFromDriverToClientGeometry.fromJson(Map<String, dynamic> json) =>
+      RouteFromDriverToClientGeometry(
+        coordinates: json["coordinates"],
+        type: json["type"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "coordinates": List<dynamic>.from(coordinates.map((x) => List<dynamic>.from(x.map((x) => x)))),
-    "type": type,
-  };
+        "coordinates": coordinates,
+        "type": type,
+      };
 }
 
 class RouteFromDriverToClientProperties {
@@ -997,83 +1086,17 @@ class RouteFromDriverToClientProperties {
   final int duration;
   final int distance;
 
-  factory RouteFromDriverToClientProperties.fromJson(Map<String, dynamic> json) => RouteFromDriverToClientProperties(
-    duration: json["duration"],
-    distance: json["distance"],
-  );
+  factory RouteFromDriverToClientProperties.fromJson(
+          Map<String, dynamic> json) =>
+      RouteFromDriverToClientProperties(
+        duration: json["duration"],
+        distance: json["distance"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "duration": duration,
-    "distance": distance,
-  };
-}
-
-class Routes {
-  Routes({
-    this.geometry,
-    this.type,
-    this.properties,
-  });
-
-  final Geometry geometry;
-  final String type;
-  final RoutesProperties properties;
-
-  factory Routes.fromJson(Map<String, dynamic> json) => Routes(
-    geometry: Geometry.fromJson(json["geometry"]),
-    type: json["type"],
-    properties: RoutesProperties.fromJson(json["properties"]),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "geometry": geometry.toJson(),
-    "type": type,
-    "properties": properties.toJson(),
-  };
-}
-
-class RoutesProperties {
-  RoutesProperties({
-    this.duration,
-    this.distance,
-  });
-
-  final int duration;
-  final double distance;
-
-  factory RoutesProperties.fromJson(Map<String, dynamic> json) => RoutesProperties(
-    duration: json["duration"],
-    distance: json["distance"].toDouble(),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "duration": duration,
-    "distance": distance,
-  };
-}
-
-class Step {
-  Step({
-    this.geometry,
-    this.type,
-    this.properties,
-  });
-
-  final Geometry geometry;
-  final String type;
-  final RoutesProperties properties;
-
-  factory Step.fromJson(Map<String, dynamic> json) => Step(
-    geometry: Geometry.fromJson(json["geometry"]),
-    type: json["type"],
-    properties: RoutesProperties.fromJson(json["properties"]),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "geometry": geometry.toJson(),
-    "type": type,
-    "properties": properties.toJson(),
-  };
+        "duration": duration,
+        "distance": distance,
+      };
 }
 
 class Route {
@@ -1087,6 +1110,7 @@ class Route {
     this.regionType,
     this.type,
     this.city,
+    this.category,
     this.cityType,
     this.street,
     this.streetType,
@@ -1111,6 +1135,7 @@ class Route {
   final String regionType;
   final String type;
   final String city;
+  final String category;
   final String cityType;
   final String street;
   final String streetType;
@@ -1126,54 +1151,56 @@ class Route {
   final double lon;
 
   factory Route.fromJson(Map<String, dynamic> json) => Route(
-    uuid: json["uuid"],
-    pointType: json["point_type"],
-    unrestrictedValue: json["unrestricted_value"],
-    value: json["value"],
-    country: json["country"],
-    region: json["region"],
-    regionType: json["region_type"],
-    type: json["type"],
-    city: json["city"],
-    cityType: json["city_type"],
-    street: json["street"],
-    streetType: json["street_type"],
-    streetWithType: json["street_with_type"],
-    house: json["house"],
-    frontDoor: json["front_door"],
-    comment: json["comment"],
-    outOfTown: json["out_of_town"],
-    houseType: json["house_type"],
-    accuracyLevel: json["accuracy_level"],
-    radius: json["radius"],
-    lat: json["lat"].toDouble(),
-    lon: json["lon"].toDouble(),
-  );
+        uuid: json["uuid"],
+        pointType: json["point_type"],
+        unrestrictedValue: json["unrestricted_value"],
+        value: json["value"],
+        country: json["country"],
+        region: json["region"],
+        regionType: json["region_type"],
+        type: json["type"],
+        city: json["city"],
+        category: json["category"] == null ? null : json["category"],
+        cityType: json["city_type"],
+        street: json["street"],
+        streetType: json["street_type"],
+        streetWithType: json["street_with_type"],
+        house: json["house"],
+        frontDoor: json["front_door"],
+        comment: json["comment"],
+        outOfTown: json["out_of_town"],
+        houseType: json["house_type"],
+        accuracyLevel: json["accuracy_level"],
+        radius: json["radius"],
+        lat: json["lat"].toDouble(),
+        lon: json["lon"].toDouble(),
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "point_type": pointType,
-    "unrestricted_value": unrestrictedValue,
-    "value": value,
-    "country": country,
-    "region": region,
-    "region_type": regionType,
-    "type": type,
-    "city": city,
-    "city_type": cityType,
-    "street": street,
-    "street_type": streetType,
-    "street_with_type": streetWithType,
-    "house": house,
-    "front_door": frontDoor,
-    "comment": comment,
-    "out_of_town": outOfTown,
-    "house_type": houseType,
-    "accuracy_level": accuracyLevel,
-    "radius": radius,
-    "lat": lat,
-    "lon": lon,
-  };
+        "uuid": uuid,
+        "point_type": pointType,
+        "unrestricted_value": unrestrictedValue,
+        "value": value,
+        "country": country,
+        "region": region,
+        "region_type": regionType,
+        "type": type,
+        "city": city,
+        "category": category == null ? null : category,
+        "city_type": cityType,
+        "street": street,
+        "street_type": streetType,
+        "street_with_type": streetWithType,
+        "house": house,
+        "front_door": frontDoor,
+        "comment": comment,
+        "out_of_town": outOfTown,
+        "house_type": houseType,
+        "accuracy_level": accuracyLevel,
+        "radius": radius,
+        "lat": lat,
+        "lon": lon,
+      };
 }
 
 class Service {
@@ -1200,36 +1227,39 @@ class Service {
   final List<String> tag;
 
   factory Service.fromJson(Map<String, dynamic> json) => Service(
-    uuid: json["uuid"],
-    name: json["name"],
-    priceCoefficient: json["price_coefficient"],
-    freight: json["freight"],
-    productDelivery: json["product_delivery"],
-    comment: json["comment"],
-    maxBonusPaymentPercent: json["max_bonus_payment_percent"],
-    image: json["image"],
-    tag: List<String>.from(json["tag"].map((x) => x)),
-  );
+        uuid: json["uuid"],
+        name: json["name"],
+        priceCoefficient: json["price_coefficient"],
+        freight: json["freight"],
+        productDelivery: json["product_delivery"],
+        comment: json["comment"],
+        maxBonusPaymentPercent: json["max_bonus_payment_percent"],
+        image: json["image"],
+        tag: List<String>.from(json["tag"].map((x) => x)),
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "name": name,
-    "price_coefficient": priceCoefficient,
-    "freight": freight,
-    "product_delivery": productDelivery,
-    "comment": comment,
-    "max_bonus_payment_percent": maxBonusPaymentPercent,
-    "image": image,
-    "tag": List<dynamic>.from(tag.map((x) => x)),
-  };
+        "uuid": uuid,
+        "name": name,
+        "price_coefficient": priceCoefficient,
+        "freight": freight,
+        "product_delivery": productDelivery,
+        "comment": comment,
+        "max_bonus_payment_percent": maxBonusPaymentPercent,
+        "image": image,
+        "tag": List<dynamic>.from(tag.map((x) => x)),
+      };
 }
 
-class OrdersDatumTariff {
-  OrdersDatumTariff({
+class OrderTariff {
+  OrderTariff({
     this.name,
     this.totalPrice,
+    this.fixedPrice,
     this.productsPrice,
     this.guaranteedDriverIncome,
+    this.guaranteedDriverIncomeForDelivery,
+    this.supplementToGuaranteedIncome,
     this.tariffCalcType,
     this.orderTripTime,
     this.orderCompleateDist,
@@ -1244,12 +1274,17 @@ class OrdersDatumTariff {
     this.waitingPoint,
     this.timeTaximeter,
     this.waitingPrice,
+    this.surge,
+    this.precalculated,
   });
 
   final String name;
   final int totalPrice;
+  final int fixedPrice;
   final int productsPrice;
   final int guaranteedDriverIncome;
+  final int guaranteedDriverIncomeForDelivery;
+  final int supplementToGuaranteedIncome;
   final String tariffCalcType;
   final int orderTripTime;
   final int orderCompleateDist;
@@ -1264,48 +1299,68 @@ class OrdersDatumTariff {
   final Map<String, int> waitingPoint;
   final Map<String, int> timeTaximeter;
   final int waitingPrice;
+  final dynamic surge;
+  final String precalculated;
 
-  factory OrdersDatumTariff.fromJson(Map<String, dynamic> json) => OrdersDatumTariff(
-    name: json["name"],
-    totalPrice: json["total_price"],
-    productsPrice: json["products_price"],
-    guaranteedDriverIncome: json["guaranteed_driver_income"],
-    tariffCalcType: json["tariff_calc_type"],
-    orderTripTime: json["order_trip_time"],
-    orderCompleateDist: json["order_compleate_dist"],
-    orderStartTime: json["order_start_time"],
-    minPaymentWithTime: json["min_payment_with_time"],
-    currency: json["currency"],
-    paymentType: json["payment_type"],
-    maxBonusPayment: json["max_bonus_payment"],
-    bonusPayment: json["bonus_payment"],
-    items: List<Item>.from(json["items"].map((x) => Item.fromJson(x))),
-    waitingBoarding: Map.from(json["waiting_boarding"]).map((k, v) => MapEntry<String, int>(k, v)),
-    waitingPoint: Map.from(json["waiting_point"]).map((k, v) => MapEntry<String, int>(k, v)),
-    timeTaximeter: Map.from(json["time_taximeter"]).map((k, v) => MapEntry<String, int>(k, v)),
-    waitingPrice: json["waiting_price"],
-  );
+  factory OrderTariff.fromJson(Map<String, dynamic> json) => OrderTariff(
+        name: json["name"],
+        totalPrice: json["total_price"],
+        fixedPrice: json["fixed_price"],
+        productsPrice: json["products_price"],
+        guaranteedDriverIncome: json["guaranteed_driver_income"],
+        guaranteedDriverIncomeForDelivery:
+            json["guaranteed_driver_income_for_delivery"],
+        supplementToGuaranteedIncome: json["supplement_to_guaranteed_income"],
+        tariffCalcType: json["tariff_calc_type"],
+        orderTripTime: json["order_trip_time"],
+        orderCompleateDist: json["order_compleate_dist"],
+        orderStartTime: json["order_start_time"],
+        minPaymentWithTime: json["min_payment_with_time"],
+        currency: json["currency"],
+        paymentType: json["payment_type"],
+        maxBonusPayment: json["max_bonus_payment"],
+        bonusPayment: json["bonus_payment"],
+        items: List<Item>.from(json["items"].map((x) => Item.fromJson(x))),
+        waitingBoarding: Map.from(json["waiting_boarding"])
+            .map((k, v) => MapEntry<String, int>(k, v)),
+        waitingPoint: Map.from(json["waiting_point"])
+            .map((k, v) => MapEntry<String, int>(k, v)),
+        timeTaximeter: Map.from(json["time_taximeter"])
+            .map((k, v) => MapEntry<String, int>(k, v)),
+        waitingPrice: json["waiting_price"],
+        surge: json["surge"],
+        precalculated: json["precalculated"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "name": name,
-    "total_price": totalPrice,
-    "products_price": productsPrice,
-    "guaranteed_driver_income": guaranteedDriverIncome,
-    "tariff_calc_type": tariffCalcType,
-    "order_trip_time": orderTripTime,
-    "order_compleate_dist": orderCompleateDist,
-    "order_start_time": orderStartTime,
-    "min_payment_with_time": minPaymentWithTime,
-    "currency": currency,
-    "payment_type": paymentType,
-    "max_bonus_payment": maxBonusPayment,
-    "bonus_payment": bonusPayment,
-    "items": List<dynamic>.from(items.map((x) => x.toJson())),
-    "waiting_boarding": Map.from(waitingBoarding).map((k, v) => MapEntry<String, dynamic>(k, v)),
-    "waiting_point": Map.from(waitingPoint).map((k, v) => MapEntry<String, dynamic>(k, v)),
-    "time_taximeter": Map.from(timeTaximeter).map((k, v) => MapEntry<String, dynamic>(k, v)),
-    "waiting_price": waitingPrice,
-  };
+        "name": name,
+        "total_price": totalPrice,
+        "fixed_price": fixedPrice,
+        "products_price": productsPrice,
+        "guaranteed_driver_income": guaranteedDriverIncome,
+        "guaranteed_driver_income_for_delivery":
+            guaranteedDriverIncomeForDelivery,
+        "supplement_to_guaranteed_income": supplementToGuaranteedIncome,
+        "tariff_calc_type": tariffCalcType,
+        "order_trip_time": orderTripTime,
+        "order_compleate_dist": orderCompleateDist,
+        "order_start_time": orderStartTime,
+        "min_payment_with_time": minPaymentWithTime,
+        "currency": currency,
+        "payment_type": paymentType,
+        "max_bonus_payment": maxBonusPayment,
+        "bonus_payment": bonusPayment,
+        "items": List<dynamic>.from(items.map((x) => x.toJson())),
+        "waiting_boarding": Map.from(waitingBoarding)
+            .map((k, v) => MapEntry<String, dynamic>(k, v)),
+        "waiting_point": Map.from(waitingPoint)
+            .map((k, v) => MapEntry<String, dynamic>(k, v)),
+        "time_taximeter": Map.from(timeTaximeter)
+            .map((k, v) => MapEntry<String, dynamic>(k, v)),
+        "waiting_price": waitingPrice,
+        "surge": surge,
+        "precalculated": precalculated,
+      };
 }
 
 class Item {
@@ -1318,12 +1373,86 @@ class Item {
   final int price;
 
   factory Item.fromJson(Map<String, dynamic> json) => Item(
-    name: json["name"],
-    price: json["price"],
-  );
+        name: json["name"],
+        price: json["price"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "name": name,
-    "price": price,
-  };
+        "name": name,
+        "price": price,
+      };
+}
+
+class Taximeter {
+  Taximeter({
+    this.wait,
+    this.distance,
+    this.time,
+  });
+
+  final List<Wait> wait;
+  final List<Distance> distance;
+  final List<Distance> time;
+
+  factory Taximeter.fromJson(Map<String, dynamic> json) => Taximeter(
+        wait: List<Wait>.from(json["wait"].map((x) => Wait.fromJson(x))),
+        distance: List<Distance>.from(
+            json["distance"].map((x) => Distance.fromJson(x))),
+        time:
+            List<Distance>.from(json["time"].map((x) => Distance.fromJson(x))),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "wait": List<dynamic>.from(wait.map((x) => x.toJson())),
+        "distance": List<dynamic>.from(distance.map((x) => x.toJson())),
+        "time": List<dynamic>.from(time.map((x) => x.toJson())),
+      };
+}
+
+class Distance {
+  Distance({
+    this.section,
+    this.interval,
+    this.rate,
+  });
+
+  final int section;
+  final int interval;
+  final int rate;
+
+  factory Distance.fromJson(Map<String, dynamic> json) => Distance(
+        section: json["section"],
+        interval: json["interval"],
+        rate: json["rate"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "section": section,
+        "interval": interval,
+        "rate": rate,
+      };
+}
+
+class Wait {
+  Wait({
+    this.freeTime,
+    this.interval,
+    this.rateTime,
+  });
+
+  final int freeTime;
+  final int interval;
+  final int rateTime;
+
+  factory Wait.fromJson(Map<String, dynamic> json) => Wait(
+        freeTime: json["free_time"],
+        interval: json["interval"],
+        rateTime: json["rate_time"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "free_time": freeTime,
+        "interval": interval,
+        "rate_time": rateTime,
+      };
 }

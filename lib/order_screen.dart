@@ -1,7 +1,13 @@
-import 'package:faem_delivery/deliveryJson/get_orders.dart';
+import 'package:faem_delivery/animations/button_animation.dart';
+import 'package:faem_delivery/deliveryJson/assign_order.dart';
+import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
+import 'package:faem_delivery/deliveryJson/get_init_data.dart';
+import 'package:faem_delivery/deliveryJson/update_status.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_switch/flutter_switch.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:intl/intl.dart';
+
 
 import 'deliveryJson/switch_deliver_status.dart';
 import 'delivery_screen.dart';
@@ -11,18 +17,73 @@ class OrderPage extends StatefulWidget {
   _OrderPageState createState() => _OrderPageState();
 }
 
-class _OrderPageState extends State<OrderPage> {
-  bool phoneVisibility = false;
-  bool deniedCallVisibility = false;
+bool clientVisibility;
 
+bool deniedCallVisibility = false;
+var indexCoef = 2;
+var arrivalTime;
+
+class _OrderPageState extends State<OrderPage> {
+  String buttonStatus;
+  bool phoneVisibility;
+
+  void onStartOrder (newStatus) {
+    setState(() {
+      buttonStatus = newStatus;
+    });
+  }
+
+  createAlertDialog(BuildContext context, String status) {
+    var distance;
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(message),
+        content: TextField(
+          onChanged: (newDistance) {
+            setState(() {
+              distance = newDistance;
+            });
+          },
+        ),
+        actions: [
+          FlatButton(
+            onPressed: () {
+              getStatusOrder(status, orderDetail['offer']['uuid'], null, distance);
+            },
+            child: Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  var controller = new MaskedTextController(
+      mask: '+0 000 000-00-00',
+      text: orderDetail['order']['client']['main_phone']);
+  var now = DateTime.now();
+  var currentId;
+  int buttonIndex;
+  List<double> coef = [0.5, 0.75, 1, 1.25, 1.5];
+
+  String formattedDate = DateFormat('ddMMyy').format(DateTime.now());
 
   @override
   void initState() {
+    String orderId = orderDetail['order']['uuid'];
+    currentId = orderId.substring(orderId.length - 4);
+    print(currentId);
+    deliverStatus = null;
+    clientVisibility = false;
+    phoneVisibility = false;
+    buttonIndex = 2;
+    buttonStatus = 'ПРИНЯТЬ ЗАКАЗ';
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    var statusCode;
     return Scaffold(
       appBar: AppBar(
         title: ListTile(
@@ -36,7 +97,7 @@ class _OrderPageState extends State<OrderPage> {
             ),
           ),
           subtitle: Text(
-            "№ Заказа",
+            "$formattedDate-$currentId",
           ),
         ),
         leading: IconButton(
@@ -44,7 +105,11 @@ class _OrderPageState extends State<OrderPage> {
             Icons.arrow_back,
             color: Colors.black,
           ),
-          onPressed: () {
+          onPressed: () async {
+//            if (orders[chosenIndex]['offer']['uuid'] != null) {
+//              await getStatusOrder(
+//                  "offer_rejected", orders[chosenIndex]['offer']['uuid']);
+//            }
             Navigator.pop(context);
           },
         ),
@@ -57,7 +122,7 @@ class _OrderPageState extends State<OrderPage> {
                 value: isSwitched,
                 onChanged: (value) async {
                   setState(() {
-                    isSwitched=value;
+                    isSwitched = value;
                   });
                   if (isSwitched) {
                     await updateRefreshToken(newRefToken);
@@ -93,6 +158,7 @@ class _OrderPageState extends State<OrderPage> {
             children: [
               Container(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       child: Padding(
@@ -172,7 +238,7 @@ class _OrderPageState extends State<OrderPage> {
                                       "images/icons/restaurant_icon.png"),
                                 ),
                                 Text(
-                                  "${orders[chosenIndex]['order']['routes'][0]['value']}",
+                                  "${orderDetail['order']['routes'][0]['value']}",
                                   style: TextStyle(
                                     fontSize: 24.0,
                                     fontWeight: FontWeight.bold,
@@ -188,7 +254,7 @@ class _OrderPageState extends State<OrderPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "${orders[chosenIndex]['order']['routes'][0]['street']}, ${orders[chosenIndex]['order']['routes'][0]['house']}",
+                                "${orderDetail['order']['routes'][0]['street']}, ${orderDetail['order']['routes'][0]['house']}",
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: (16.0),
@@ -198,6 +264,58 @@ class _OrderPageState extends State<OrderPage> {
                               ),
                               Image.asset("images/icons/map_icon.png")
                             ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: Divider(
+                        color: Color(0xFFECEEEC),
+                      ),
+                    ),
+                    Visibility(
+                      visible: clientVisibility,
+                      child: Container(
+                        child: ListTile(
+                          title: Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Container(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: Icon(Icons.person_outline),
+                                  ),
+                                  Text(
+                                    "${orderDetail['order']['routes'][1]['value']}",
+                                    style: TextStyle(
+                                      fontSize: 24.0,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: "UniNeue",
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          subtitle: Container(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "${orderDetail['order']['routes'][1]['street']}, ${orderDetail['order']['routes'][1]['house']}",
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: (16.0),
+                                    fontFamily: 'UniNeue',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Image.asset("images/icons/map_icon.png")
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -229,7 +347,7 @@ class _OrderPageState extends State<OrderPage> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "${orders[chosenIndex]['order']['client']['main_phone']}",
+                                        controller.text,
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold,
@@ -237,7 +355,8 @@ class _OrderPageState extends State<OrderPage> {
                                         ),
                                       ),
                                       Padding(
-                                        padding: const EdgeInsets.only(right: 3.5),
+                                        padding:
+                                            const EdgeInsets.only(right: 3.5),
                                         child: IconButton(
                                           onPressed: () {},
                                           icon: Icon(Icons.call),
@@ -253,7 +372,18 @@ class _OrderPageState extends State<OrderPage> {
                       ),
                     ),
                     Visibility(
-                      visible: orders[chosenIndex]['order']['client']['comment'] != "" ? true : false,
+                      visible: clientVisibility,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Divider(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: orderDetail['order']['client']['comment'] != ""
+                          ? true
+                          : false,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
                         child: Container(
@@ -267,7 +397,8 @@ class _OrderPageState extends State<OrderPage> {
                               ),
                             ),
                             subtitle: Text(
-                              "${orders[chosenIndex]['order']['client']['comment']}",
+                              "${orderDetail['offer']['comment']}",
+                              //['order']['client']['comment']
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 14.0,
@@ -279,26 +410,49 @@ class _OrderPageState extends State<OrderPage> {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Container(
-                        child: ListTile(
-                          title: Text(
-                            "Состав заказа:",
-                            style: TextStyle(
-                              color: Color(0xFFB8BAB8),
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Text(
-                            "Nn kjfmvkmfvklfmv,nvnmknlkfdnvkfd vjfdnvjfdnvhjdfbnvkfdbvkjfdbvjhfdnvkjdbvksdnbv",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 14.0,
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.bold,
-                            ),
+                    Visibility(
+                      visible: products != null ? true : false,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 16.0,
+                          bottom: 8.0,
+                        ),
+                        child: Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 15.0),
+                                child: Text(
+                                  "Состав заказа:",
+                                  style: TextStyle(
+                                    color: Color(0xFFB8BAB8),
+                                    fontSize: 14.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: 4.0, left: 15.0),
+                                child: Wrap(
+                                  direction: Axis.vertical,
+                                  children: List.generate(
+                                    products != null ? products.length : 0,
+                                    (index) {
+                                      return Text(
+                                        "${orderDetail['order']['products_data']['products'][index]['number']} x ${orderDetail['order']['products_data']['products'][index]['name']}",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -316,7 +470,7 @@ class _OrderPageState extends State<OrderPage> {
                             ),
                           ),
                           subtitle: Text(
-                            "Сумма по заказу: ${orders[chosenIndex]['order']['tariff']['total_price']}₽\nБезналичная оплата в ресторане\nБезналичная оплата клиентом\nБез сдачи клиенту",
+                            "Сумма по заказу: ${orderDetail['order']['tariff']['total_price']}₽\nОплата: ${orderDetail['order']['tariff']['payment_type']}",
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 14.0,
@@ -341,25 +495,162 @@ class _OrderPageState extends State<OrderPage> {
                         margin: EdgeInsets.only(bottom: 8.0),
                         child: SizedBox(
                           width: MediaQuery.of(context).size.width * 0.95,
-                          child: RaisedButton(
-                            onPressed: () async {
-                              setState(() {
-                                phoneVisibility = true;
-                              });
-                              await updateRefreshToken(newRefToken);
-                              await getOrdersData();
-                            },
-                            color: Color(0xFFFD6F6D),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Text(
-                                "ПРИНЯТЬ ЗАКАЗ",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 17.0),
-                              ),
-                            ),
+                          child: StatefulBuilder(builder: (BuildContext context, StateSetter setButtonState) {
+                              return RaisedButton(
+                                ////////////////////////////////////////////////////////////////////
+                                onPressed: () async {
+                                    if (deliverStatus == "order_start") {
+                                      statusCode = await getStatusOrder('on_place', orderDetail['offer']['uuid'], null, 0);
+                                      if (statusCode == 200) {
+                                        await deliverInitData();
+                                        setState(() async {
+                                          await getStatusOrder('on_the_way', orderDetail['offer']['uuid'], null, null);
+                                          await deliverInitData();
+                                          clientVisibility = true;
+                                          buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
+                                        });
+                                      } else if (statusCode == 406) {
+                                        createAlertDialog(context, 'on_place');
+                                        await deliverInitData();
+                                        setState(() async {
+                                          await getStatusOrder('on_the_way', orderDetail['offer']['uuid'], null, null);
+                                          await deliverInitData();
+                                          clientVisibility = true;
+                                          buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
+                                        });
+                                      }
+                                    }
+                                    if (deliverStatus == 'on_the_way') {
+                                      statusCode = await getStatusOrder('order_payment', orderDetail['offer']['uuid'], null, 0);
+                                      if (statusCode == 200) {
+                                        await deliverInitData();
+                                        setState(() {
+                                          buttonStatus = 'ОТДАЛ ЗАКАЗ';
+                                          deliverStatus =
+                                          initData['order_data']['order_state']['value'];
+                                        });
+                                      } else if (statusCode == 406) {
+                                        createAlertDialog(context, 'order_payment');
+                                        await deliverInitData();
+                                        setState(() {
+                                          buttonStatus = 'ОТДАЛ ЗАКАЗ';
+                                          deliverStatus =
+                                          initData['order_data']['order_state']['value'];
+                                        });
+                                      }
+                                    }
+                                    if(deliverStatus == "order_payment") {
+                                      await getStatusOrder('finished',
+                                          orderDetail['offer']['uuid'], null,
+                                          null);
+                                      await deliverInitData();
+                                      setState(() {
+                                        deliverStatus = initData['order_data']['order_state']['value'];
+                                        print('deliverStatus: $deliverStatus');
+                                      });
+                                      Navigator.pop(context);
+                                    }
+                                    if (deliverStatus == null) {
+                                      setState(() {
+                                        phoneVisibility = true;
+                                      });
+                                      await updateRefreshToken(newRefToken);
+                                      var assignCode = await assignOrder(orderDetail['offer']['uuid']);
+                                      if (assignCode == 200) {
+                                        var statusCode = await getStatusOrder('offer_offered', orderDetail['offer']['uuid'], null, null);
+                                        if (statusCode == 200) {
+                                          var initCode = await deliverInitData();
+                                          if (initCode == 200) {
+                                            int currentTimeUnix = (DateTime.now().millisecondsSinceEpoch / 1000).round();
+                                            arrivalTime = ((arrivalTimeToFirstPoint + currentTimeUnix)).round();
+                                            buttonIndex = 2;
+                                            return showModalBottomSheet(
+                                                context: context,
+                                                backgroundColor: Colors.white,
+                                                builder: (context) {
+                                                  return StatefulBuilder(
+                                                      builder: (BuildContext context, StateSetter setModalState) {
+                                                        return Container(
+                                                          height: MediaQuery.of(context).size.height * .265,
+                                                          child: Visibility(
+                                                            child: Column(
+                                                              children: [
+                                                                Padding(
+                                                                  padding: const EdgeInsets.all(16.0),
+                                                                  child: Wrap(
+                                                                    direction: Axis.horizontal,
+                                                                    children: List.generate(5, (index) {
+                                                                      return Padding(
+                                                                        padding: EdgeInsets.symmetric(horizontal: 7.5),
+                                                                        child: SizedBox(
+                                                                          child: FlatButton(
+                                                                            onPressed: () async {
+                                                                              setModalState(() {
+                                                                                arrivalTime = ((arrivalTimeToFirstPoint * coef[index] + currentTimeUnix)).round();
+                                                                                buttonIndex = index;
+                                                                                print("B $buttonIndex");
+                                                                              });
+                                                                              print("arrivalTime $arrivalTime");
+                                                                            },
+                                                                            child: Text(
+                                                                              "${((arrivalTimeToFirstPoint * coef[index]) / 60).round()}",
+                                                                              style: TextStyle(
+                                                                                color: buttonIndex != index ? Colors.black : Color(0xFFFD6F6D),
+                                                                                fontWeight: FontWeight.bold,
+                                                                                fontSize: 25.0,
+                                                                              ),
+                                                                            ),
+                                                                            color: Color(0xFFEEEEEE),
+                                                                          ),
+                                                                          width: 60.0,
+                                                                          height: 60.0,
+                                                                        ),
+                                                                      );
+                                                                    }),
+                                                                  ),
+                                                                ),
+                                                                Padding(
+                                                                  padding:
+                                                                  const EdgeInsets.symmetric(horizontal: 24.0),
+                                                                  child: Container(
+                                                                    child: ButtonAnimation(
+                                                                        primaryColor: Color(0xFFFD6F6D),
+                                                                        darkPrimaryColor: Color(0xFF33353E), orderFunction: onStartOrder),
+                                                                  ),
+                                                                ),
+                                                                Padding(
+                                                                  padding: const EdgeInsets.only(
+                                                                      left: 24.0,
+                                                                      right: 24.0,
+                                                                      top: 15.0),
+                                                                  child: Container(
+                                                                    child: Text("Пожалуйста, укажите максимально точное время прибытия к клиенту"),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        );
+                                                      });
+                                                });
+                                          }
+                                        }
+                                      }
+                                    }
+                                },
+                                color: Color(0xFFFD6F6D),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Text(
+                                    buttonStatus,
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 17.0),
+                                  ),
+                                ),
+                              );
+                            }
                           ),
                         ),
                       ),

@@ -2,11 +2,9 @@ import 'dart:async';
 
 import 'package:faem_delivery/auth_code_screen.dart';
 import 'package:faem_delivery/auth_phone_screen.dart';
-import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
 import 'package:faem_delivery/deliveryJson/send_location.dart';
 import 'package:faem_delivery/deliveryJson/switch_deliver_status.dart';
-import 'package:faem_delivery/deliveryJson/update_status.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
 
@@ -26,6 +24,10 @@ class DeliveryApp extends StatefulWidget {
   @override
   _DeliveryAppState createState() => _DeliveryAppState();
 }
+
+final birthday = DateTime(1967, 10, 12);
+final date2 = DateTime.now();
+final difference = date2.difference(birthday).inSeconds;
 
 class _DeliveryAppState extends State<DeliveryApp> {
   Timer timer;
@@ -64,20 +66,21 @@ class DeliveryList extends StatefulWidget {
 class _DeliveryListState extends State<DeliveryList> {
   @override
   void initState() {
-    super.initState();
     opacity = 0.5;
     isSwitched = false;
     //sendLocation();
-    //getOrdersData();
+    getOrdersData();
+    super.initState();
     new Timer.periodic(oneMinute, (Timer t) async {
       await updateRefreshToken(newRefToken);
       await sendLocation();
     });
     new Timer.periodic(fifteenSeconds, (Timer t) async {
      await getOrdersData();
-      setState(() {});
+      if (this.mounted) {
+        setState(() {});
+      }
     });
-
   }
 
   @override
@@ -110,21 +113,27 @@ class _DeliveryListState extends State<DeliveryList> {
               child: Switch(
                 value: isSwitched,
                 onChanged: (value) async {
-                  setState(() {
-                    isSwitched = value;
-                  });
+                  if (this.mounted) {
+                    setState(() {
+                      isSwitched = value;
+                    });
+                  }
                   if (isSwitched) {
                     await updateRefreshToken(newRefToken);
                     await switchDeliverStatus("online");
-                    setState(() {
-                      opacity = 1;
-                    });
+                    if (this.mounted) {
+                      setState(() {
+                        opacity = 1;
+                      });
+                    }
                   } else {
                     await updateRefreshToken(newRefToken);
                     await switchDeliverStatus("offline");
-                    setState(() {
-                      opacity = 0.5;
-                    });
+                    if (this.mounted) {
+                      setState(() {
+                        opacity = 0.5;
+                      });
+                    }
                   }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),
@@ -246,9 +255,23 @@ class _DeliveryListState extends State<DeliveryList> {
                                               width: double.infinity,
                                               child: RaisedButton(
                                                 onPressed: () async {
-                                                  await getStatusOrder("offer_accepted", orders[index]['offer']['uuid']);
+//                                                  await getStatusOrder("offer_offered", orders[index]['offer']['uuid']);
+//                                                  await getStatusOrder("offer_accepted", orders[index]['offer']['uuid']);
                                                   await getDetailOrdersData(orders[index]['offer']['uuid']);
                                                   Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
+//                                                  int assignCode = await assignOrder(orders[index]['offer']['uuid']);
+//                                                  if (assignCode == 200) {
+//                                                    await deliverInitData();
+//
+//                                                  } else {
+//                                                    return SnackBar(
+//                                                      content: Text("Ошибка!"),
+//                                                      action: SnackBarAction(
+//                                                          label: 'Ok',
+//                                                          onPressed: (){}
+//                                                      ),
+//                                                    );
+//                                                  }
                                                 },
                                                 child: Text(
                                                   "Принять заказ",

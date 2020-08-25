@@ -1,5 +1,4 @@
 import 'package:faem_delivery/tokenData/refresh_token.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -14,7 +13,7 @@ Future<dynamic> getOrdersData() async {
   });
   if (response.statusCode == 200) {
     orders = json.decode(response.body);
-    //print(orders[0]['order']['uuid']);
+    //print("getOrdersData: ${response.body}");
   } else {
     print("Error order with code ${response.statusCode}");
   }
