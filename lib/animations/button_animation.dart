@@ -106,9 +106,14 @@ class _ButtonAnimationState extends State<ButtonAnimation>
                         statusCode = await getStatusOrder('order_start', orderDetail['offer']['uuid'], null, null);
                         await deliverInitData();
                       } else if(deliverStatus == "order_start") {
-                        widget.orderFunction('ПРИБЫЛ В РЕСТОРАН');
+                        setState(() {
+                          widget.orderFunction('ПРИБЫЛ В РЕСТОРАН');
+                        });
                         Navigator.pop(context);
                       }
+                      setState(() {
+                        widget.orderFunction('ПРИБЫЛ В РЕСТОРАН');
+                      });
                       Navigator.pop(context);
                     },
                     child: Container(

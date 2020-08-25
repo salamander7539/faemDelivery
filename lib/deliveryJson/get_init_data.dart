@@ -21,9 +21,9 @@ Future<int> deliverInitData() async {
     var responseUnix = initData['order_data']['offer']['response_time'];
     arrivalTimeToFirstPoint = initData['order_data']['offer']['route_to_client']['properties']['duration'] - 1;
     distanceToFirstPoint = initData['order_data']['offer']['route_to_client']['properties']['distance'] - 1;
-    print('distanceToFirstPoint: ${distanceToFirstPoint.round()}');
+//    print('distanceToFirstPoint: ${distanceToFirstPoint.round()}');
     distanceToSecondPoint = initData['order_data']['order']['route_way_data']['routes']['properties']['distance'];
-    print('distanceToSecondPoint: ${distanceToSecondPoint.round()}');
+//    print('distanceToSecondPoint: ${distanceToSecondPoint.round()}');
     arrivalTimeToSecondPoint = initData['order_data']['order']['route_way_data']['routes']['properties']['duration'];
 
     deliverStatus = initData['order_data']['order_state']['value'];
@@ -31,11 +31,11 @@ Future<int> deliverInitData() async {
     int currentUnix = (DateTime.now().millisecondsSinceEpoch / 1000).round();
     responseTime = responseUnix - currentUnix;
     arrivalUnixToFirstPoint = currentUnix + arrivalTimeToFirstPoint;
-    print('currentUnix $currentUnix');
-    print('arrivalUnixToFirstPoint $arrivalUnixToFirstPoint seconds');
-    print('responseTime $responseTime seconds');
-    print('arrivalTimeToFirstPoint $arrivalTimeToFirstPoint seconds');
-    print('arrivalTimeToSecondPoint $arrivalTimeToSecondPoint seconds');
+//    print('currentUnix $currentUnix');
+//    print('arrivalUnixToFirstPoint $arrivalUnixToFirstPoint seconds');
+//    print('responseTime $responseTime seconds');
+//    print('arrivalTimeToFirstPoint $arrivalTimeToFirstPoint seconds');
+//    print('arrivalTimeToSecondPoint $arrivalTimeToSecondPoint seconds');
   } else {
     print('Request failed with status: ${response.statusCode}.');
     print(response.body);

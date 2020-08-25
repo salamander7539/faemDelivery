@@ -4,7 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
-var message;
+var message, confirmDistance, stateOrder;
+
 
 Future<int> getStatusOrder(
     String orderStatus, String offerUuid, int arrivalTime, var distance) async {
@@ -22,17 +23,21 @@ Future<int> getStatusOrder(
   });
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
+    stateOrder = jsonResponse['state'];
     //print("STATUS: ${response.body}");
-  } else if (response.statusCode == 406 && deliverStatus == 'order_payment') {
+  } else if (response.statusCode == 406) {
     var jsonResponse = json.decode(response.body);
-    distanceToSecondPoint = jsonResponse['distance_to_target'];
+    confirmDistance = jsonResponse['distance_to_target'];
+    stateOrder = jsonResponse['state'];
+//    print("confirmDistance: $confirmDistance");
+
     message = jsonResponse['message'];
   } else {
     print('Request update failed with status: ${response.statusCode}.');
     print(response.body);
   }
   print('update: $body');
-  print(response.body);
+//  print(response.body);
   return response.statusCode;
 }
 

@@ -27,31 +27,71 @@ class _OrderPageState extends State<OrderPage> {
   String buttonStatus;
   bool phoneVisibility;
 
-  void onStartOrder (newStatus) {
+  onStartOrder (newStatus) {
     setState(() {
       buttonStatus = newStatus;
     });
   }
 
-  createAlertDialog(BuildContext context, String status) {
-    var distance;
+  createAlertDialog(BuildContext context, String status, String mes) {
+    print(message);
+    int distance;
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(message),
+        title: Text(mes != null ? mes : "0",
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 17.0,
+          ),
+        ),
         content: TextField(
           onChanged: (newDistance) {
             setState(() {
-              distance = newDistance;
+              distance = int.parse(newDistance);
             });
           },
+          decoration: InputDecoration(
+            border: new UnderlineInputBorder(
+              borderSide: new BorderSide(
+                color: Color(0xFFFD6F6D),
+              ),
+            ),
+            focusColor: Color(0xFFFD6F6D),
+            enabledBorder: new UnderlineInputBorder(
+              borderSide: new BorderSide(
+                color: Color(0xFFFD6F6D),
+              ),
+            ),
+            focusedBorder: new UnderlineInputBorder(
+              borderSide: new BorderSide(
+                color: Color(0xFFFD6F6D),
+                width: 2.0,
+              ),
+            ),
+          ),
         ),
+
         actions: [
           FlatButton(
-            onPressed: () {
-              getStatusOrder(status, orderDetail['offer']['uuid'], null, distance);
+            onPressed: () async {
+              var answer = await getStatusOrder(status, orderDetail['offer']['uuid'], null, distance);
+              if (answer == 200) {
+                await deliverInitData();
+                if (deliverStatus == "on_place"){
+                  await getStatusOrder('on_the_way', orderDetail['offer']['uuid'], null, distance);
+                  await deliverInitData();
+                }
+                Navigator.pop(context);
+              }
             },
-            child: Text("OK"),
+            child: Text("OK",
+              style: TextStyle(
+                color: Color(0xFFFF8064),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -85,6 +125,7 @@ class _OrderPageState extends State<OrderPage> {
   Widget build(BuildContext context) {
     var statusCode;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: ListTile(
           title: Text(
@@ -510,10 +551,9 @@ class _OrderPageState extends State<OrderPage> {
                                           buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
                                         });
                                       } else if (statusCode == 406) {
-                                        createAlertDialog(context, 'on_place');
+                                        createAlertDialog(context, 'on_place', message);
                                         await deliverInitData();
                                         setState(() async {
-                                          await getStatusOrder('on_the_way', orderDetail['offer']['uuid'], null, null);
                                           await deliverInitData();
                                           clientVisibility = true;
                                           buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
@@ -521,7 +561,7 @@ class _OrderPageState extends State<OrderPage> {
                                       }
                                     }
                                     if (deliverStatus == 'on_the_way') {
-                                      statusCode = await getStatusOrder('order_payment', orderDetail['offer']['uuid'], null, 0);
+                                      statusCode = await getStatusOrder('order_payment', orderDetail['offer']['uuid'], null, null);
                                       if (statusCode == 200) {
                                         await deliverInitData();
                                         setState(() {
@@ -530,7 +570,7 @@ class _OrderPageState extends State<OrderPage> {
                                           initData['order_data']['order_state']['value'];
                                         });
                                       } else if (statusCode == 406) {
-                                        createAlertDialog(context, 'order_payment');
+                                        createAlertDialog(context, 'order_payment', message);
                                         await deliverInitData();
                                         setState(() {
                                           buttonStatus = 'ОТДАЛ ЗАКАЗ';
@@ -543,11 +583,6 @@ class _OrderPageState extends State<OrderPage> {
                                       await getStatusOrder('finished',
                                           orderDetail['offer']['uuid'], null,
                                           null);
-                                      await deliverInitData();
-                                      setState(() {
-                                        deliverStatus = initData['order_data']['order_state']['value'];
-                                        print('deliverStatus: $deliverStatus');
-                                      });
                                       Navigator.pop(context);
                                     }
                                     if (deliverStatus == null) {
