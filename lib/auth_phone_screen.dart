@@ -1,9 +1,18 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:connectivity/connectivity.dart';
 import 'package:device_id/device_id.dart';
 import 'package:faem_delivery/deliveryJson/deliver_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'deliveryJson/get_orders.dart';
+import 'main.dart';
 
 String driverName, phone, deviceId;
 var fcmToken, answerOrderState;
@@ -14,16 +23,16 @@ class AuthPhoneScreen extends StatefulWidget {
 }
 
 class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
-  TextEditingController textEditingController = TextEditingController();
+  TextEditingController _phoneController = TextEditingController();
   MaskTextInputFormatter maskTextInputFormatter = MaskTextInputFormatter(
-      mask: "+# ### ###-##-##", filter: {"#": RegExp(r'[0-9]')});
+      mask: "+7 ### ###-##-##", filter: {"#": RegExp(r'[0-9]')});
   Color buttonPhoneColor, buttonPhoneTextColor;
   bool buttonPhoneEnable, phoneWarning;
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   Future _showNotification(Map<String, dynamic> message) async {
     var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
@@ -35,7 +44,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
     );
 
     var platformChannelSpecifics =
-    new NotificationDetails(androidPlatformChannelSpecifics, null);
+        new NotificationDetails(androidPlatformChannelSpecifics, null);
     await flutterLocalNotificationsPlugin.show(
       0,
       message['notification']['title'],
@@ -81,6 +90,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
         print("onLaunch: $message");
       },
     );
+
     getToken();
   }
 
@@ -131,7 +141,8 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                         fontSize: 20.0,
                       ),
                       textAlign: TextAlign.center,
-                      controller: textEditingController,
+                      controller: _phoneController,
+                      autofocus: true,
                       inputFormatters: [maskTextInputFormatter],
                       autocorrect: false,
                       keyboardType: TextInputType.phone,
@@ -207,14 +218,45 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Container(
-                      child: Text(
-                        "Нажимая кнопку “Далее”, вы принимете условия Пользовательского соглашения и Политики конфиденцальности",
-                        style: TextStyle(
-                          color: (Color(0xFF979797)),
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: RichText(
                         textAlign: TextAlign.center,
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              style: urlLinkText(),
+                              text:
+                                  'Нажимая кнопку “Далее”, вы принимете условия ',
+                            ),
+                            TextSpan(
+                              style: urlLinkText().copyWith(
+                                  decoration: TextDecoration.underline),
+                              text: 'Пользовательского соглашения ',
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () async {
+                                  final url = 'https://faem.ru/legal/agreement';
+                                  if (await canLaunch(url)) {
+                                    await launch(url);
+                                  }
+                                },
+                            ),
+                            TextSpan(
+                              style: urlLinkText(),
+                              text: 'и ',
+                            ),
+                            TextSpan(
+                              style: urlLinkText().copyWith(
+                                  decoration: TextDecoration.underline),
+                              text: 'Политики конфиденцальности',
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () async {
+                                  final url = 'https://faem.ru/privacy';
+                                  if (await canLaunch(url)) {
+                                    await launch(url);
+                                  }
+                                },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -241,9 +283,10 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                             ),
                           ),
                           onPressed: () async {
-                            if (textEditingController.text.length == 16) {
+                            if (_phoneController.text.length == 16) {
                               phone =
-                                  "+${maskTextInputFormatter.getUnmaskedText()}";
+                                  "+7${maskTextInputFormatter.getUnmaskedText()}";
+                              print(phone);
                               deviceId = await DeviceId.getID;
                               print(deviceId);
                               await loadAuthData(deviceId, phone);
@@ -251,6 +294,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                                 Navigator.pushNamed(context, "/authCodePage");
                               } else {
                                 setState(() {
+                                  _phoneController.clear();
                                   phoneWarning = true;
                                 });
                               }
@@ -266,6 +310,27 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  checkInternetConnection() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+
+    } else if (connectivityResult == ConnectivityResult.mobile) {
+      // I am connected to a mobile network.
+    } else if (connectivityResult == ConnectivityResult.wifi) {
+      // I am connected to a wifi network.
+    }
+  }
+
+
+
+  TextStyle urlLinkText() {
+    return TextStyle(
+      color: (Color(0xFF979797)),
+      fontSize: 13.0,
+      fontWeight: FontWeight.bold,
     );
   }
 }

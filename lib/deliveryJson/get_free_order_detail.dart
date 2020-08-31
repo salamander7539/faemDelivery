@@ -6,7 +6,7 @@ import 'dart:async';
 var orderDetail;
 List products = [];
 
-Future<Null> getDetailOrdersData(var uuid) async {
+Future<dynamic> getDetailOrdersData(var uuid) async {
   var url = 'https://driver.apis.stage.faem.pro/api/v2/freeorder/$uuid';
   var response = await http.get(url, headers: <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
@@ -22,8 +22,10 @@ Future<Null> getDetailOrdersData(var uuid) async {
     //print(response.body);
   } else {
     print("Error order with code ${response.statusCode}");
+    orderDetail = json.decode(response.body);
     print(response.body);
   }
+  return response.statusCode;
 }
 // To parse this JSON data, do
 //

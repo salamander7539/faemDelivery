@@ -1,5 +1,6 @@
 import 'package:faem_delivery/auth_phone_screen.dart';
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
+import 'package:faem_delivery/deliveryJson/get_orders.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +19,7 @@ Position currentPosition;
 String pin;
 
 class _AuthCodeScreenState extends State<AuthCodeScreen> {
-  TextEditingController pinController = new TextEditingController();
+  TextEditingController _pinController = new TextEditingController();
   Color buttonCodeColor, buttonCodeTextColor;
   bool buttonCodeEnable, smsWarning;
 
@@ -101,7 +102,8 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                         width: MediaQuery.of(context).size.width * 0.6,
                         child: Container(
                           child: PinInputTextField(
-                            controller: pinController,
+                            autoFocus: true,
+                            controller: _pinController,
                             pinLength: 4,
                             decoration: UnderlineDecoration(
                               color: Color(0xFFFD6F6D),
@@ -208,9 +210,12 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                                 stopwatch.stop();
                                 milliseconds = stopwatch.elapsedMicroseconds;
                                 print("time: $milliseconds ");
+                                _pinController.clear();
+                                await getOrdersData();
                                 Navigator.pushNamed(context, "/deliveryPage");
                               } else {
                                 setState(() {
+                                  _pinController.clear();
                                   smsWarning = true;
                                 });
                               }

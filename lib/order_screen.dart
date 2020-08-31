@@ -1,5 +1,6 @@
 import 'package:faem_delivery/animations/button_animation.dart';
 import 'package:faem_delivery/deliveryJson/assign_order.dart';
+import 'package:faem_delivery/deliveryJson/call_client.dart';
 import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
 import 'package:faem_delivery/deliveryJson/get_init_data.dart';
 import 'package:faem_delivery/deliveryJson/update_status.dart';
@@ -10,7 +11,7 @@ import 'package:intl/intl.dart';
 
 
 import 'deliveryJson/switch_deliver_status.dart';
-import 'delivery_screen.dart';
+import 'main.dart';
 
 class OrderPage extends StatefulWidget {
   @override
@@ -72,7 +73,6 @@ class _OrderPageState extends State<OrderPage> {
             ),
           ),
         ),
-
         actions: [
           FlatButton(
             onPressed: () async {
@@ -104,8 +104,11 @@ class _OrderPageState extends State<OrderPage> {
   var now = DateTime.now();
   var currentId;
   int buttonIndex;
+  String switchToClient;
+  String orderComment;
+  var feature;
   List<double> coef = [0.5, 0.75, 1, 1.25, 1.5];
-
+  var fondTimeSize = 25.0;
   String formattedDate = DateFormat('ddMMyy').format(DateTime.now());
 
   @override
@@ -117,6 +120,12 @@ class _OrderPageState extends State<OrderPage> {
     clientVisibility = false;
     phoneVisibility = false;
     buttonIndex = 2;
+    orderComment = (orderDetail['order']['comment']).contains(new RegExp(r'[A-Za-z0-9а-яА-Я]')) ? orderDetail['order']['comment'] : null;
+    print('comment $orderComment');
+    print((orderDetail['order']['features']).length);
+    feature = (orderDetail['order']['features']).length != 0 ? orderDetail['order']['features'][0]['name'] : "";
+    print('feature $feature');
+    switchToClient = "Комментарий ресторана:";
     buttonStatus = 'ПРИНЯТЬ ЗАКАЗ';
     super.initState();
   }
@@ -124,6 +133,7 @@ class _OrderPageState extends State<OrderPage> {
   @override
   Widget build(BuildContext context) {
     var statusCode;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -213,51 +223,51 @@ class _OrderPageState extends State<OrderPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Прибыть в ресторан",
+                                    "Прибыть в заведение",
                                     style: TextStyle(
                                       fontSize: 16.0,
                                       color: Color(0xFFFD6F6D),
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  Visibility(
-                                    visible: phoneVisibility,
-                                    child: Text(
-                                      "(Время прибытия)",
-                                      style: TextStyle(
-                                        fontSize: 14.0,
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
+                                  // Visibility(
+                                  //   visible: phoneVisibility,
+                                  //   child: Text(
+                                  //     "(Время прибытия)",
+                                  //     style: TextStyle(
+                                  //       fontSize: 14.0,
+                                  //       color: Colors.black,
+                                  //       fontWeight: FontWeight.bold,
+                                  //     ),
+                                  //   ),
+                                  // ),
                                 ],
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.rectangle,
-                                  borderRadius: BorderRadius.circular(36.0),
-                                  color: Colors.white,
-                                  border: Border.all(color: Color(0xFFFD6F6D)),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 6.0, horizontal: 20.0),
-                                  child: Text(
-                                    "СРОЧНО",
-                                    style: TextStyle(
-                                      fontSize: 10.0,
-                                      color: Color(0xFFFD6F6D),
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: "UniNeue",
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
+                            // Padding(
+                            //   padding: const EdgeInsets.all(16.0),
+                            //   child: Container(
+                            //     decoration: BoxDecoration(
+                            //       shape: BoxShape.rectangle,
+                            //       borderRadius: BorderRadius.circular(36.0),
+                            //       color: Colors.white,
+                            //       border: Border.all(color: Color(0xFFFD6F6D)),
+                            //     ),
+                            //     child: Padding(
+                            //       padding: const EdgeInsets.symmetric(
+                            //           vertical: 6.0, horizontal: 20.0),
+                            //       child: Text(
+                            //         "СРОЧНО",
+                            //         style: TextStyle(
+                            //           fontSize: 10.0,
+                            //           color: Color(0xFFFD6F6D),
+                            //           fontWeight: FontWeight.bold,
+                            //           fontFamily: "UniNeue",
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),
@@ -316,7 +326,7 @@ class _OrderPageState extends State<OrderPage> {
                       ),
                     ),
                     Visibility(
-                      visible: clientVisibility,
+                      visible: true,
                       child: Container(
                         child: ListTile(
                           title: Padding(
@@ -399,7 +409,9 @@ class _OrderPageState extends State<OrderPage> {
                                         padding:
                                             const EdgeInsets.only(right: 3.5),
                                         child: IconButton(
-                                          onPressed: () {},
+                                          onPressed: () async {
+                                            await callClient();
+                                          },
                                           icon: Icon(Icons.call),
                                         ),
                                       ),
@@ -422,15 +434,15 @@ class _OrderPageState extends State<OrderPage> {
                       ),
                     ),
                     Visibility(
-                      visible: orderDetail['order']['client']['comment'] != ""
+                      visible: orderComment != null
                           ? true
                           : false,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        padding: const EdgeInsets.only(top: 16.0),
                         child: Container(
                           child: ListTile(
                             title: Text(
-                              "Комментарий ресторана:",
+                              switchToClient,
                               style: TextStyle(
                                 color: Color(0xFFB8BAB8),
                                 fontSize: 14.0,
@@ -438,7 +450,7 @@ class _OrderPageState extends State<OrderPage> {
                               ),
                             ),
                             subtitle: Text(
-                              "${orderDetail['offer']['comment']}",
+                              orderComment != null ? orderComment : "",
                               //['order']['client']['comment']
                               style: TextStyle(
                                 color: Colors.black,
@@ -454,10 +466,7 @@ class _OrderPageState extends State<OrderPage> {
                     Visibility(
                       visible: products != null ? true : false,
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: 16.0,
-                          bottom: 8.0,
-                        ),
+                        padding: const EdgeInsets.only(top: 16.0),
                         child: Container(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -478,9 +487,7 @@ class _OrderPageState extends State<OrderPage> {
                                     bottom: 4.0, left: 15.0),
                                 child: Wrap(
                                   direction: Axis.vertical,
-                                  children: List.generate(
-                                    products != null ? products.length : 0,
-                                    (index) {
+                                  children: List.generate(products != null ? products.length : 0, (index) {
                                       return Text(
                                         "${orderDetail['order']['products_data']['products'][index]['number']} x ${orderDetail['order']['products_data']['products'][index]['name']}",
                                         style: TextStyle(
@@ -499,7 +506,7 @@ class _OrderPageState extends State<OrderPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      padding: const EdgeInsets.only(top: 16.0),
                       child: Container(
                         child: ListTile(
                           title: Text(
@@ -510,8 +517,8 @@ class _OrderPageState extends State<OrderPage> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          subtitle: Text(
-                            "Сумма по заказу: ${orderDetail['order']['tariff']['total_price']}₽\nОплата: ${orderDetail['order']['tariff']['payment_type']}",
+                          subtitle: Text(orderDetail['order']['tariff']['products_price'] == 0 ? "Стоимость доставки: ${orderDetail['order']['tariff']['total_price']}₽\nОплата: ${orderDetail['order']['tariff']['payment_type']}\n$feature" :
+                            "Стоимость доставки: ${orderDetail['order']['tariff']['total_price']}₽\nСумма выкупа: ${orderDetail['order']['tariff']['products_price']}₽\nОплата: ${orderDetail['order']['tariff']['payment_type']}\n$feature",
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 14.0,
@@ -548,6 +555,9 @@ class _OrderPageState extends State<OrderPage> {
                                           await getStatusOrder('on_the_way', orderDetail['offer']['uuid'], null, null);
                                           await deliverInitData();
                                           clientVisibility = true;
+                                          setState(() {});
+                                          switchToClient = (orderDetail['order']['client']['comment']).contains(new RegExp(r'[A-Za-z0-9а-яА-Я]')) ? "Комментарий клиента:" : switchToClient;
+                                          orderComment = (orderDetail['order']['client']['comment']).contains(new RegExp(r'[A-Za-z0-9а-яА-Я]')) ? orderDetail['order']['client']['comment'] : null;
                                           buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
                                         });
                                       } else if (statusCode == 406) {
@@ -555,6 +565,9 @@ class _OrderPageState extends State<OrderPage> {
                                         await deliverInitData();
                                         setState(() async {
                                           await deliverInitData();
+                                          setState(() {});
+                                          switchToClient = (orderDetail['order']['client']['comment']).contains(new RegExp(r'[A-Za-z0-9а-яА-Я]')) ? "Комментарий клиента:" : switchToClient;
+                                          orderComment = (orderDetail['order']['client']['comment']).contains(new RegExp(r'[A-Za-z0-9а-яА-Я]')) ? orderDetail['order']['client']['comment'] : null;
                                           clientVisibility = true;
                                           buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
                                         });
@@ -565,15 +578,14 @@ class _OrderPageState extends State<OrderPage> {
                                       if (statusCode == 200) {
                                         await deliverInitData();
                                         setState(() {
-                                          buttonStatus = 'ОТДАЛ ЗАКАЗ';
-                                          deliverStatus =
-                                          initData['order_data']['order_state']['value'];
+                                          buttonStatus = 'ОПЛАТА ЗАКАЗА';
+                                          deliverStatus = initData['order_data']['order_state']['value'];
                                         });
                                       } else if (statusCode == 406) {
                                         createAlertDialog(context, 'order_payment', message);
                                         await deliverInitData();
                                         setState(() {
-                                          buttonStatus = 'ОТДАЛ ЗАКАЗ';
+                                          buttonStatus = 'ОПЛАТА ЗАКАЗА';
                                           deliverStatus =
                                           initData['order_data']['order_state']['value'];
                                         });
@@ -605,19 +617,22 @@ class _OrderPageState extends State<OrderPage> {
                                                 builder: (context) {
                                                   return StatefulBuilder(
                                                       builder: (BuildContext context, StateSetter setModalState) {
-                                                        return Container(
-                                                          height: MediaQuery.of(context).size.height * .265,
-                                                          child: Visibility(
-                                                            child: Column(
-                                                              children: [
-                                                                Padding(
-                                                                  padding: const EdgeInsets.all(16.0),
-                                                                  child: Wrap(
-                                                                    direction: Axis.horizontal,
-                                                                    children: List.generate(5, (index) {
-                                                                      return Padding(
-                                                                        padding: EdgeInsets.symmetric(horizontal: 7.5),
-                                                                        child: SizedBox(
+                                                        return Padding(
+                                                          padding: const EdgeInsets.only(top: 8.0),
+                                                          child: Container(
+                                                            height: MediaQuery.of(context).size.height * .275,
+                                                            child: Visibility(
+                                                              child: Column(
+                                                                children: [
+                                                                  Padding(
+                                                                    padding: const EdgeInsets.all(8.0),
+                                                                    child: Wrap(
+                                                                      direction: Axis.horizontal,
+                                                                      children: List.generate(5, (index) {
+                                                                        return Container(
+                                                                          width: MediaQuery.of(context).size.width * .16,
+                                                                          height: MediaQuery.of(context).size.width * .16,
+                                                                          margin: EdgeInsets.symmetric(horizontal: 4.0),
                                                                           child: FlatButton(
                                                                             onPressed: () async {
                                                                               setModalState(() {
@@ -632,37 +647,35 @@ class _OrderPageState extends State<OrderPage> {
                                                                               style: TextStyle(
                                                                                 color: buttonIndex != index ? Colors.black : Color(0xFFFD6F6D),
                                                                                 fontWeight: FontWeight.bold,
-                                                                                fontSize: 25.0,
+                                                                                fontSize: fondTimeSize,
                                                                               ),
                                                                             ),
                                                                             color: Color(0xFFEEEEEE),
                                                                           ),
-                                                                          width: 60.0,
-                                                                          height: 60.0,
-                                                                        ),
-                                                                      );
-                                                                    }),
+                                                                        );
+                                                                      }),
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                                Padding(
-                                                                  padding:
-                                                                  const EdgeInsets.symmetric(horizontal: 24.0),
-                                                                  child: Container(
-                                                                    child: ButtonAnimation(
-                                                                        primaryColor: Color(0xFFFD6F6D),
-                                                                        darkPrimaryColor: Color(0xFF33353E), orderFunction: onStartOrder),
+                                                                  Padding(
+                                                                    padding:
+                                                                    const EdgeInsets.symmetric(horizontal: 24.0),
+                                                                    child: Container(
+                                                                      child: ButtonAnimation(
+                                                                          primaryColor: Color(0xFFFD6F6D),
+                                                                          darkPrimaryColor: Color(0xFF33353E), orderFunction: onStartOrder),
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                                Padding(
-                                                                  padding: const EdgeInsets.only(
-                                                                      left: 24.0,
-                                                                      right: 24.0,
-                                                                      top: 15.0),
-                                                                  child: Container(
-                                                                    child: Text("Пожалуйста, укажите максимально точное время прибытия к клиенту"),
+                                                                  Padding(
+                                                                    padding: const EdgeInsets.only(
+                                                                        left: 24.0,
+                                                                        right: 24.0,
+                                                                        top: 15.0),
+                                                                    child: Container(
+                                                                      child: Text("Пожалуйста, укажите максимально точное время прибытия к клиенту"),
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                              ],
+                                                                ],
+                                                              ),
                                                             ),
                                                           ),
                                                         );

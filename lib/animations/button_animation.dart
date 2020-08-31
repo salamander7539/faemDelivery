@@ -107,12 +107,12 @@ class _ButtonAnimationState extends State<ButtonAnimation>
                         await deliverInitData();
                       } else if(deliverStatus == "order_start") {
                         setState(() {
-                          widget.orderFunction('ПРИБЫЛ В РЕСТОРАН');
+                          widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
                         });
                         Navigator.pop(context);
                       }
                       setState(() {
-                        widget.orderFunction('ПРИБЫЛ В РЕСТОРАН');
+                        widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
                       });
                       Navigator.pop(context);
                     },

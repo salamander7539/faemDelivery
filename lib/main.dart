@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'dart:io';
 import 'package:faem_delivery/auth_code_screen.dart';
 import 'package:faem_delivery/auth_phone_screen.dart';
 import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
@@ -18,7 +18,7 @@ double opacity = 0.5;
 var orderUuid = "";
 int chosenIndex = 0;
 const oneMinute = const Duration(minutes: 1);
-const fifteenSeconds = const Duration(seconds: 15);
+const fifteenSeconds = const Duration(seconds: 10);
 
 class DeliveryApp extends StatefulWidget {
   @override
@@ -29,12 +29,24 @@ final birthday = DateTime(1967, 10, 12);
 final date2 = DateTime.now();
 final difference = date2.difference(birthday).inSeconds;
 
-class _DeliveryAppState extends State<DeliveryApp> {
+class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver{
   Timer timer;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print('state = $state');
   }
 
   @override
@@ -69,7 +81,6 @@ class _DeliveryListState extends State<DeliveryList> {
     opacity = 0.5;
     isSwitched = false;
     //sendLocation();
-    getOrdersData();
     super.initState();
     new Timer.periodic(oneMinute, (Timer t) async {
       await updateRefreshToken(newRefToken);
@@ -79,6 +90,7 @@ class _DeliveryListState extends State<DeliveryList> {
      await getOrdersData();
       if (this.mounted) {
         setState(() {});
+        print(orders.length);
       }
     });
   }
@@ -92,9 +104,7 @@ class _DeliveryListState extends State<DeliveryList> {
             Icons.menu,
             color: Colors.black,
           ),
-          onPressed: () {
-            Navigator.pushNamed(context, "/authPhonePage");
-          },
+          onPressed: () {},
         ),
         title: Text(
           "Заказы",
@@ -188,34 +198,34 @@ class _DeliveryListState extends State<DeliveryList> {
                                                   ),
                                                 ),
                                               ),
-                                              Padding(
-                                                padding: const EdgeInsets.all(16.0),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.rectangle,
-                                                    borderRadius:
-                                                        BorderRadius.circular(36.0),
-                                                    color: Colors.white,
-                                                    border: Border.all(
-                                                        color: Color(0xFFFD6F6D)),
-                                                  ),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                            vertical: 8.0,
-                                                            horizontal: 20.0),
-                                                    child: Text(
-                                                      "СРОЧНО",
-                                                      style: TextStyle(
-                                                        fontSize: 16.0,
-                                                        color: Color(0xFFFD6F6D),
-                                                        fontWeight: FontWeight.bold,
-                                                        fontFamily: "UniNeue",
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              )
+                                              // Padding(
+                                              //   padding: const EdgeInsets.all(16.0),
+                                              //   child: Container(
+                                              //     decoration: BoxDecoration(
+                                              //       shape: BoxShape.rectangle,
+                                              //       borderRadius:
+                                              //           BorderRadius.circular(36.0),
+                                              //       color: Colors.white,
+                                              //       border: Border.all(
+                                              //           color: Color(0xFFFD6F6D)),
+                                              //     ),
+                                              //     child: Padding(
+                                              //       padding:
+                                              //           const EdgeInsets.symmetric(
+                                              //               vertical: 8.0,
+                                              //               horizontal: 20.0),
+                                              //       child: Text(
+                                              //         "СРОЧНО",
+                                              //         style: TextStyle(
+                                              //           fontSize: 16.0,
+                                              //           color: Color(0xFFFD6F6D),
+                                              //           fontWeight: FontWeight.bold,
+                                              //           fontFamily: "UniNeue",
+                                              //         ),
+                                              //       ),
+                                              //     ),
+                                              //   ),
+                                              // ),
                                             ],
                                           ),
                                         ),
@@ -257,8 +267,12 @@ class _DeliveryListState extends State<DeliveryList> {
                                                 onPressed: () async {
 //                                                  await getStatusOrder("offer_offered", orders[index]['offer']['uuid']);
 //                                                  await getStatusOrder("offer_accepted", orders[index]['offer']['uuid']);
-                                                  await getDetailOrdersData(orders[index]['offer']['uuid']);
-                                                  Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
+                                                  var accessCode = await getDetailOrdersData(orders[index]['offer']['uuid']);
+                                                  if (accessCode == 200) {
+                                                    Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
+                                                  } else {
+                                                    print(orderDetail['message']);
+                                                  }
 //                                                  int assignCode = await assignOrder(orders[index]['offer']['uuid']);
 //                                                  if (assignCode == 200) {
 //                                                    await deliverInitData();
@@ -339,7 +353,7 @@ class _DeliveryListState extends State<DeliveryList> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Заказы вам не доступны",
+                          "На данный момент заказы отсутсвуют",
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
