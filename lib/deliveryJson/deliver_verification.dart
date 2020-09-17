@@ -1,13 +1,19 @@
 import 'package:faem_delivery/auth_code_screen.dart';
 import 'package:faem_delivery/auth_phone_screen.dart';
+import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:async';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 int pinAnswerCode, status;
 String refToken, token;
+SharedPreferences sharedPreferences;
 
 Future<TokenData> loadCode(String deviceId, var code) async {
+  sharedPreferences = await SharedPreferences.getInstance();
   TokenData getToken;
   var jsonRequest = json.encode({
     "device_id": deviceId,

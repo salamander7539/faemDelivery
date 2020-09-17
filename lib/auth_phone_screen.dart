@@ -16,6 +16,7 @@ import 'main.dart';
 
 String driverName, phone, deviceId;
 var fcmToken, answerOrderState;
+TextEditingController phoneController = TextEditingController();
 
 class AuthPhoneScreen extends StatefulWidget {
   @override
@@ -23,7 +24,7 @@ class AuthPhoneScreen extends StatefulWidget {
 }
 
 class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
-  TextEditingController _phoneController = TextEditingController();
+
   MaskTextInputFormatter maskTextInputFormatter = MaskTextInputFormatter(
       mask: "+7 ### ###-##-##", filter: {"#": RegExp(r'[0-9]')});
   Color buttonPhoneColor, buttonPhoneTextColor;
@@ -98,6 +99,13 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        bottom: PreferredSize(
+            child: Container(
+              color: Color(0xFFECEEEC),
+              height: 1.0,
+            ),
+            preferredSize: Size.fromHeight(1.0)),
+        elevation: 0.0,
         leading: IconButton(
           icon: Icon(
             Icons.menu,
@@ -106,11 +114,6 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
           onPressed: () {},
         ),
         backgroundColor: Colors.white,
-        title: Text(
-          "Вход в личный кабинет",
-          style: TextStyle(
-              fontSize: 19.0, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
       ),
       backgroundColor: Colors.white,
       body: Stack(
@@ -141,7 +144,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                         fontSize: 20.0,
                       ),
                       textAlign: TextAlign.center,
-                      controller: _phoneController,
+                      controller: phoneController,
                       autofocus: true,
                       inputFormatters: [maskTextInputFormatter],
                       autocorrect: false,
@@ -171,20 +174,22 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                         ),
                       ),
                       onChanged: (String newPhone) {
-                        setState(() {
-                          phone = newPhone;
-                          print(phone);
-                          if (phone.length == 16) {
-                            buttonPhoneColor = Color(0xFFFD6F6D);
-                            buttonPhoneTextColor = Colors.white;
-                            buttonPhoneEnable = false;
-                          } else {
-                            buttonPhoneColor = Color(0xFFF3F3F3);
-                            buttonPhoneTextColor = Colors.black;
-                            buttonPhoneEnable = true;
-                            phoneWarning = false;
-                          }
-                        });
+                        if (this.mounted) {
+                          setState(() {
+                            phone = newPhone;
+                            print(phone);
+                            if (phone.length == 16) {
+                              buttonPhoneColor = Color(0xFFFD6F6D);
+                              buttonPhoneTextColor = Colors.white;
+                              buttonPhoneEnable = false;
+                            } else {
+                              buttonPhoneColor = Color(0xFFF3F3F3);
+                              buttonPhoneTextColor = Colors.black;
+                              buttonPhoneEnable = true;
+                              phoneWarning = false;
+                            }
+                          });
+                        }
                       },
                     ),
                     Visibility(
@@ -283,7 +288,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                             ),
                           ),
                           onPressed: () async {
-                            if (_phoneController.text.length == 16) {
+                            if (phoneController.text.length == 16) {
                               phone =
                                   "+7${maskTextInputFormatter.getUnmaskedText()}";
                               print(phone);
@@ -293,10 +298,12 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                               if (respCode == 200) {
                                 Navigator.pushNamed(context, "/authCodePage");
                               } else {
-                                setState(() {
-                                  _phoneController.clear();
-                                  phoneWarning = true;
-                                });
+                                if (this.mounted) {
+                                  setState(() {
+                                    phoneController.clear();
+                                    phoneWarning = true;
+                                  });
+                                }
                               }
                             }
                           },
@@ -312,19 +319,6 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
       ),
     );
   }
-
-  checkInternetConnection() async {
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.none) {
-
-    } else if (connectivityResult == ConnectivityResult.mobile) {
-      // I am connected to a mobile network.
-    } else if (connectivityResult == ConnectivityResult.wifi) {
-      // I am connected to a wifi network.
-    }
-  }
-
-
 
   TextStyle urlLinkText() {
     return TextStyle(

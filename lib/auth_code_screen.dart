@@ -4,8 +4,13 @@ import 'package:faem_delivery/deliveryJson/get_orders.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:pin_input_text_field/pin_input_text_field.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'deliveryJson/deliver_auth.dart';
+import 'deliveryJson/remind_password.dart';
 
 class AuthCodeScreen extends StatefulWidget {
   @override
@@ -14,30 +19,32 @@ class AuthCodeScreen extends StatefulWidget {
 
 final Stopwatch stopwatch = new Stopwatch();
 var milliseconds;
+
 Position currentPosition;
 
 String pin;
 
 class _AuthCodeScreenState extends State<AuthCodeScreen> {
-  TextEditingController _pinController = new TextEditingController();
+  TextEditingController pinController = new TextEditingController();
   Color buttonCodeColor, buttonCodeTextColor;
   bool buttonCodeEnable, smsWarning;
 
-  _getCurrentLocation() {
-    geolocator
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
-        .then((Position position) {
-      setState(() {
-        currentPosition = position;
-      });
-      print("lat: ${currentPosition.latitude}, lng: ${currentPosition.longitude}");
-      //_getAddressFromLatLng();
-    }).catchError((e) {
-      print(e);
-    });
-  }
-
-  final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
+  // _getCurrentLocation() {
+  //   geolocator
+  //       .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
+  //       .then((Position position) {
+  //     setState(() {
+  //       currentPosition = position;
+  //     });
+  //     print(
+  //         "lat: ${currentPosition.latitude}, lng: ${currentPosition.longitude}");
+  //
+  //   }).catchError((e) {
+  //     print(e);
+  //   });
+  // }
+  //
+  // final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
 
   @override
   void initState() {
@@ -52,6 +59,13 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        bottom: PreferredSize(
+            child: Container(
+              color: Color(0xFFECEEEC),
+              height: 1.0,
+            ),
+            preferredSize: Size.fromHeight(1.0)),
+        elevation: 0.0,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios,
@@ -103,7 +117,7 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                         child: Container(
                           child: PinInputTextField(
                             autoFocus: true,
-                            controller: _pinController,
+                            controller: pinController,
                             pinLength: 4,
                             decoration: UnderlineDecoration(
                               color: Color(0xFFFD6F6D),
@@ -117,20 +131,22 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                               WhitelistingTextInputFormatter.digitsOnly
                             ],
                             onChanged: (String newPin) async {
-                              setState(() {
-                                pin = newPin;
-                                print("pin: $pin");
-                                if (pin.length == 4) {
-                                  buttonCodeColor = Color(0xFFFD6F6D);
-                                  buttonCodeTextColor = Colors.white;
-                                  buttonCodeEnable = false;
-                                } else {
-                                  buttonCodeColor = Color(0xFFF3F3F3);
-                                  buttonCodeTextColor = Colors.black;
-                                  buttonCodeEnable = true;
-                                  smsWarning = false;
-                                }
-                              });
+                              if (this.mounted) {
+                                setState(() {
+                                  pin = newPin;
+                                  print("pin: $pin");
+                                  if (pin.length == 4) {
+                                    buttonCodeColor = Color(0xFFFD6F6D);
+                                    buttonCodeTextColor = Colors.white;
+                                    buttonCodeEnable = false;
+                                  } else {
+                                    buttonCodeColor = Color(0xFFF3F3F3);
+                                    buttonCodeTextColor = Colors.black;
+                                    buttonCodeEnable = true;
+                                    smsWarning = false;
+                                  }
+                                });
+                              }
                             },
                           ),
                         ),
@@ -164,19 +180,29 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      child: Text(
-                        "Получить новый код можно через 25с",
-                        style: TextStyle(
-                          color: (Color(0xFF979797)),
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.bold,
+                  Visibility(
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Container(
+                        height: 20.0,
+                        child: FlatButton(
+                          onPressed: () async {
+                            await remindPassword();
+                          },
+                          color: Colors.transparent,
+                          child: Text(
+                            remindMessage != null ? remindMessage : '',
+                            style: TextStyle(
+                              color: (Color(0xFF979797)),
+                              fontSize: 13.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ),
+                    visible: remindMessage != null ? true : false,
                   ),
                   AbsorbPointer(
                     absorbing: buttonCodeEnable,
@@ -203,21 +229,26 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                           onPressed: () async {
                             if (pin.length == 4) {
                               await loadCode(phone, pin);
+                              sharedPreferences = await SharedPreferences.getInstance();
                               await updateRefreshToken(refToken);
                               if (status == 200) {
+                                setState(() {
+                                  sharedPreferences.setString('token', updateResponse['token']);
+                                });
                                 stopwatch.start();
-                                _getCurrentLocation();
                                 stopwatch.stop();
                                 milliseconds = stopwatch.elapsedMicroseconds;
                                 print("time: $milliseconds ");
-                                _pinController.clear();
                                 await getOrdersData();
                                 Navigator.pushNamed(context, "/deliveryPage");
+                                pinController.clear();
                               } else {
-                                setState(() {
-                                  _pinController.clear();
-                                  smsWarning = true;
-                                });
+                                if (this.mounted) {
+                                  setState(() {
+                                    pinController.clear();
+                                    smsWarning = true;
+                                  });
+                                }
                               }
                             }
                           },

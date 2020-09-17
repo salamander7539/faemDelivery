@@ -1,21 +1,25 @@
+import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
+import 'package:faem_delivery/deliveryJson/update_status.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
 List orders = [];
+var errorCode;
 
 Future<dynamic> getOrdersData() async {
   var url = 'https://driver.apis.stage.faem.pro/api/v2/freeorders?number=30&service=Доставка';
   var response = await http.get(url, headers: <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
-    'Authorization': 'Bearer $newToken'
+    'Authorization': 'Bearer ${sharedPreferences.get('token')}'
   });
   if (response.statusCode == 200) {
     orders = json.decode(response.body);
     //print("getOrdersData: ${response.body}");
   } else {
     print("Error order with code ${response.statusCode}");
+    errorCode = response.statusCode;
   }
   return orders;
 }

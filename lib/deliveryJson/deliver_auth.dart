@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
-var respCode;
+var respCode, respMessage, remindMessage;
 
 Future<AuthData> loadAuthData(String deviceId, String phone) async {
   AuthData authData;
@@ -18,10 +18,17 @@ Future<AuthData> loadAuthData(String deviceId, String phone) async {
     var jsonResponse = json.decode(response.body);
     authData = new AuthData.fromJson(jsonResponse);
     respCode = response.statusCode;
+    respMessage = jsonResponse['message'];
+    if (respMessage == 'Введите пароль из смс сообщения') {
+      remindMessage = null;
+    } else if (respMessage == 'Введите пароль') {
+      remindMessage = 'Забыли пароль?';
+    }
     print(response.body);
   } else {
     print('Request failed with status: ${response.statusCode}.');
   }
+  print(response.statusCode);
   return authData;
 }
 

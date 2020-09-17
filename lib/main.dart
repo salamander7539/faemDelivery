@@ -1,12 +1,20 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:connectivity/connectivity.dart';
 import 'package:faem_delivery/auth_code_screen.dart';
 import 'package:faem_delivery/auth_phone_screen.dart';
+import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
+import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
 import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
+import 'package:faem_delivery/deliveryJson/get_history_data.dart';
+import 'package:faem_delivery/deliveryJson/get_init_data.dart';
 import 'package:faem_delivery/deliveryJson/send_location.dart';
 import 'package:faem_delivery/deliveryJson/switch_deliver_status.dart';
+import 'package:faem_delivery/taxi_menu.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'deliveryJson/get_orders.dart';
 import 'order_screen.dart';
@@ -20,6 +28,7 @@ int chosenIndex = 0;
 const oneMinute = const Duration(minutes: 1);
 const fifteenSeconds = const Duration(seconds: 10);
 
+
 class DeliveryApp extends StatefulWidget {
   @override
   _DeliveryAppState createState() => _DeliveryAppState();
@@ -29,25 +38,25 @@ final birthday = DateTime(1967, 10, 12);
 final date2 = DateTime.now();
 final difference = date2.difference(birthday).inSeconds;
 
-class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver{
+class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
   Timer timer;
 
   @override
   void initState() {
-    WidgetsBinding.instance.addObserver(this);
+    //WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    //WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('state = $state');
-  }
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   print('state = $state');
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +74,7 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver{
         "/authCodePage": (context) => AuthCodeScreen(),
         "/orderPage": (context) => OrderPage(),
       },
-      home: AuthPhoneScreen(),
+      home: DeliveryList(),
     );
   }
 }
@@ -75,44 +84,135 @@ class DeliveryList extends StatefulWidget {
   _DeliveryListState createState() => _DeliveryListState();
 }
 
+Position currentPositionStart;
+
 class _DeliveryListState extends State<DeliveryList> {
+
+  DateTime backButtonPressedTime;
+  var category;
+  var answer;
+
   @override
   void initState() {
     opacity = 0.5;
     isSwitched = false;
-    //sendLocation();
-    super.initState();
+    _getCurrentLocationStart();
+    checkLoginStatus();
     new Timer.periodic(oneMinute, (Timer t) async {
-      await updateRefreshToken(newRefToken);
-      await sendLocation();
-    });
-    new Timer.periodic(fifteenSeconds, (Timer t) async {
-     await getOrdersData();
-      if (this.mounted) {
-        setState(() {});
-        print(orders.length);
+      sharedPreferences = await SharedPreferences.getInstance();
+      answer = await updateRefreshToken(sharedPreferences.get('refToken'));
+      if (sharedPreferences.get('token') != null) {
+        await sendLocation();
       }
     });
+    new Timer.periodic(fifteenSeconds, (Timer t) async {
+      await _getCurrentLocationStart();
+      await getDriverData();
+      await getHistoryData();
+      if (this.mounted) {
+        setState(() {});
+        if (orders != null) {
+          print('orders: ${orders.length}');
+        } else {
+          print('orders: $orders');
+        }
+      }
+    });
+    super.initState();
   }
+
+  _getCurrentLocationStart() {
+    geolocator
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
+        .then((Position position) {
+      if (this.mounted) {
+        setState(() {
+          currentPositionStart = position;
+        });
+      }
+      print(
+          "lat: ${currentPositionStart.latitude}, lng: ${currentPositionStart.longitude}");
+
+    }).catchError((e) {
+      print(e);
+    });
+  }
+
+  final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
+
+  checkLoginStatus() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    print("token: ${sharedPreferences.getString('token')}");
+    if(sharedPreferences.getString('token') == null) {
+      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => AuthPhoneScreen()), (route) => false);
+    }
+  }
+
+  // _checkInternetConnectivity() async {
+  //   var result = await Connectivity().checkConnectivity();
+  //   if (result == ConnectivityResult.none) {
+  //     _showDialog('No internet', "You're not connected to a network");
+  //   } else if (result == ConnectivityResult.mobile) {
+  //   } else if (result == ConnectivityResult.wifi) {}
+  // }
+  //
+  // _showDialog(title, text) {
+  //   Fluttertoast.showToast(
+  //       msg: "$title $text",
+  //       toastLength: Toast.LENGTH_SHORT,
+  //       gravity: ToastGravity.CENTER,
+  //       timeInSecForIosWeb: 1,
+  //       backgroundColor: Colors.red,
+  //       textColor: Colors.white,
+  //       fontSize: 16.0,
+  //   );
+  // }
+
+  // Future<bool> _onBackPressed() {
+  //   return showDialog(context: context,
+  //   builder: (BuildContext context) {
+  //     return AlertDialog(
+  //
+  //     );
+  //   });
+  // }
+
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+      drawer: TaxiMenu(),
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(
-            Icons.menu,
-            color: Colors.black,
-          ),
-          onPressed: () {},
+        bottom: PreferredSize(
+            child: Container(
+              color: Color(0xFFECEEEC),
+              height: 1.0,
+            ),
+            preferredSize: Size.fromHeight(1.0)),
+        elevation: 0.0,
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              icon: Icon(
+                Icons.menu,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          }
         ),
-        title: Text(
-          "Заказы",
-          style: TextStyle(
-            fontSize: 19.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-            fontFamily: "UniNeue",
+        title: Transform(
+          transform: Matrix4.translationValues(-15.0, 0.0, 0.0),
+          child: Text(
+            "Заказы",
+            style: TextStyle(
+              fontSize: 19.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              fontFamily: "UniNeue",
+            ),
           ),
         ),
         actions: [
@@ -129,7 +229,8 @@ class _DeliveryListState extends State<DeliveryList> {
                     });
                   }
                   if (isSwitched) {
-                    await updateRefreshToken(newRefToken);
+                    await sendLocation();
+                    await updateRefreshToken(sharedPreferences.get('refToken'));
                     await switchDeliverStatus("online");
                     if (this.mounted) {
                       setState(() {
@@ -137,7 +238,7 @@ class _DeliveryListState extends State<DeliveryList> {
                       });
                     }
                   } else {
-                    await updateRefreshToken(newRefToken);
+                    await updateRefreshToken(sharedPreferences.get('refToken'));
                     await switchDeliverStatus("offline");
                     if (this.mounted) {
                       setState(() {
@@ -166,6 +267,15 @@ class _DeliveryListState extends State<DeliveryList> {
                 return ListView.builder(
                     itemCount: orders == null ? 0 : orders.length,
                     itemBuilder: (context, index) {
+                      if (orders[index]['order']['routes'][0]['category'] == 'Рестораны') {
+                        category = 'ресторана';
+                      } else if (orders[index]['order']['routes'][0]['category'] == 'Аптеки') {
+                        category = 'аптеки';
+                      } else if (orders[index]['order']['routes'][0]['category'] == 'Магазины') {
+                        category = 'магазина';
+                      } else {
+                        category = 'пункта назначения';
+                      }
                       return Container(
                         margin: EdgeInsets.only(top: 10.0),
                         child: Column(
@@ -179,7 +289,8 @@ class _DeliveryListState extends State<DeliveryList> {
                                   ),
                                   child: Container(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: <Widget>[
                                         Container(
                                           child: Row(
@@ -187,9 +298,12 @@ class _DeliveryListState extends State<DeliveryList> {
                                                 MainAxisAlignment.spaceBetween,
                                             children: <Widget>[
                                               Padding(
-                                                padding: const EdgeInsets.all(16.0),
+                                                padding: const EdgeInsets.only(
+                                                    top: 18.0,
+                                                    bottom: 12.0,
+                                                    left: 16.0),
                                                 child: Text(
-                                                  "Прибыть в ресторан",
+                                                  "Доставка из $category",
                                                   style: TextStyle(
                                                     fontSize: 16.0,
                                                     color: Color(0xFFFD6F6D),
@@ -198,58 +312,77 @@ class _DeliveryListState extends State<DeliveryList> {
                                                   ),
                                                 ),
                                               ),
-                                              // Padding(
-                                              //   padding: const EdgeInsets.all(16.0),
-                                              //   child: Container(
-                                              //     decoration: BoxDecoration(
-                                              //       shape: BoxShape.rectangle,
-                                              //       borderRadius:
-                                              //           BorderRadius.circular(36.0),
-                                              //       color: Colors.white,
-                                              //       border: Border.all(
-                                              //           color: Color(0xFFFD6F6D)),
-                                              //     ),
-                                              //     child: Padding(
-                                              //       padding:
-                                              //           const EdgeInsets.symmetric(
-                                              //               vertical: 8.0,
-                                              //               horizontal: 20.0),
-                                              //       child: Text(
-                                              //         "СРОЧНО",
-                                              //         style: TextStyle(
-                                              //           fontSize: 16.0,
-                                              //           color: Color(0xFFFD6F6D),
-                                              //           fontWeight: FontWeight.bold,
-                                              //           fontFamily: "UniNeue",
-                                              //         ),
-                                              //       ),
-                                              //     ),
-                                              //   ),
-                                              // ),
+                                              Padding(
+                                                padding: const EdgeInsets.all(16.0),
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.rectangle,
+                                                    borderRadius:
+                                                        BorderRadius.circular(36.0),
+                                                    color: Colors.white,
+                                                    border: Border.all(
+                                                        color: Color(0xFFFD6F6D)),
+                                                  ),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                            vertical: 8.0,
+                                                            horizontal: 20.0),
+                                                    child: Text(
+                                                      (orders[index]['order']['tariff']['payment_type']).toUpperCase(),
+                                                      style: TextStyle(
+                                                        fontSize: 11.0,
+                                                        color: Color(0xFFFD6F6D),
+                                                        fontWeight: FontWeight.bold,
+                                                        fontFamily: "UniNeue",
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
-                                        Divider(color: Colors.black),
+                                        Divider(color: Color(0xFFECEEEC)),
                                         Container(
                                           child: Padding(
-                                            padding: const EdgeInsets.all(16.0),
+                                            padding: const EdgeInsets.only(
+                                                top: 16.0,
+                                                bottom: 12.0,
+                                                left: 16.0,
+                                                right: 16.0),
                                             child: ListTile(
-                                              leading: Image.asset(
-                                                  "images/icons/restaurant_icon.png"),
-                                              title: Text(
-                                                "${orders[index]['order']['routes'][0]['value']}",
-                                                style: TextStyle(
-                                                  fontSize: 24.0,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: "UniNeue",
+                                              leading: Container(
+                                                width: 18.0,
+                                                height: 19.0,
+                                                child: Image.asset(
+                                                  "images/icons/restaurant_icon.png", fit: BoxFit.fill,
                                                 ),
                                               ),
-                                              subtitle: Text(
-                                                "${orders[index]['order']['routes'][0]['street']}, ${orders[index]['order']['routes'][0]['house']}",
-                                                style: TextStyle(
-                                                  color: Color(0xFF878A87),
-                                                  fontSize: (16.0),
-                                                  fontFamily: 'UniNeue',
+                                              title: Transform(
+                                                transform:
+                                                    Matrix4.translationValues(
+                                                        -15.0, 0.0, 0.0),
+                                                child: Text(
+                                                  "${orders[index]['order']['routes'][0]['value']}",
+                                                  style: TextStyle(
+                                                    fontSize: 24.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: "UniNeue",
+                                                  ),
+                                                ),
+                                              ),
+                                              subtitle: Transform(
+                                                transform:
+                                                    Matrix4.translationValues(
+                                                        -15.0, 0.0, 0.0),
+                                                child: Text(
+                                                  "${orders[index]['order']['routes'][0]['street']}, ${orders[index]['order']['routes'][0]['house']} • ${(orders[index]['offer']['route_to_client']['properties']['distance'] / 1000).toStringAsFixed(1)}км от вас",
+                                                  style: TextStyle(
+                                                    color: Color(0xFF878A87),
+                                                    fontSize: (16.0),
+                                                    fontFamily: 'UniNeue',
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -263,12 +396,19 @@ class _DeliveryListState extends State<DeliveryList> {
                                                 right: 16.0),
                                             child: SizedBox(
                                               width: double.infinity,
-                                              child: RaisedButton(
+                                              child: FlatButton(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(4.0)),
+                                                ),
                                                 onPressed: () async {
-//                                                  await getStatusOrder("offer_offered", orders[index]['offer']['uuid']);
-//                                                  await getStatusOrder("offer_accepted", orders[index]['offer']['uuid']);
-                                                  var accessCode = await getDetailOrdersData(orders[index]['offer']['uuid']);
+                                                  var accessCode =
+                                                      await getDetailOrdersData(
+                                                          orders[index]['offer']
+                                                              ['uuid']);
                                                   if (accessCode == 200) {
+                                                    deliverInitData();
                                                     Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
                                                   } else {
                                                     print(orderDetail['message']);
@@ -287,13 +427,18 @@ class _DeliveryListState extends State<DeliveryList> {
 //                                                    );
 //                                                  }
                                                 },
-                                                child: Text(
-                                                  "Принять заказ",
-                                                  style: TextStyle(
-                                                    fontSize: 18.0,
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontFamily: "UniNeue",
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      12.0),
+                                                  child: Text(
+                                                    "ПРИНЯТЬ ЗАКАЗ",
+                                                    style: TextStyle(
+                                                      fontSize: 14.0,
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontFamily: "UniNeue",
+                                                    ),
                                                   ),
                                                 ),
                                                 color: Color(0xFFFD6F6D),
@@ -307,7 +452,8 @@ class _DeliveryListState extends State<DeliveryList> {
                                       shape: BoxShape.rectangle,
                                       borderRadius: BorderRadius.circular(4.0),
                                       color: Color(0xFFFFFFFF),
-                                      border: Border.all(color: Colors.black),
+                                      border: Border.all(
+                                          color: Color(0xFFECEEEC), width: 1.0),
                                     ),
                                   ),
                                 ),
@@ -378,3 +524,4 @@ class _DeliveryListState extends State<DeliveryList> {
     );
   }
 }
+

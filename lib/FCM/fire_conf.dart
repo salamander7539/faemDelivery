@@ -15,7 +15,6 @@ class Helper {
               onPressed: (){}
           ),
         );
-
         try {
           Scaffold.of(buildContext).showSnackBar(snackBar);
         } catch (e) {

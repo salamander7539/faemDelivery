@@ -4,7 +4,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
-var message, confirmDistance, stateOrder;
+import 'deliver_verification.dart';
+
+var message, distanceToTarget, stateOrder;
 
 
 Future<int> getStatusOrder(
@@ -19,7 +21,7 @@ Future<int> getStatusOrder(
   });
   var response = await http.post(url, body: body, headers: <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
-    'Authorization': 'Bearer $newToken'
+    'Authorization': 'Bearer ${sharedPreferences.get('token')}'
   });
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
@@ -27,7 +29,7 @@ Future<int> getStatusOrder(
     //print("STATUS: ${response.body}");
   } else if (response.statusCode == 406) {
     var jsonResponse = json.decode(response.body);
-    confirmDistance = jsonResponse['distance_to_target'];
+    distanceToTarget = jsonResponse['distance_to_target'];
     stateOrder = jsonResponse['state'];
 //    print("confirmDistance: $confirmDistance");
 

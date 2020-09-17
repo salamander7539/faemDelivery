@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
+import 'deliver_verification.dart';
+
 var initData;
 var deliverStatus;
 var distanceToFirstPoint, distanceToSecondPoint;
@@ -13,7 +15,7 @@ Future<int> deliverInitData() async {
   var body = json.encode("");
   var response = await http.post(url, body: body, headers: <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
-    'Authorization': 'Bearer $newToken'
+    'Authorization': 'Bearer ${sharedPreferences.get('token')}'
   });
   if (response.statusCode == 200) {
     initData = json.decode(response.body);

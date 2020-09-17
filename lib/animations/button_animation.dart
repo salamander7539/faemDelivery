@@ -31,6 +31,7 @@ class _ButtonAnimationState extends State<ButtonAnimation>
   double scale = 1.0;
   bool animationComplete = false;
   double barColorOpacity = .6;
+  Color barColor = Color(0xFF33353E);
   bool animationStart = false;
 
   @override
@@ -68,9 +69,29 @@ class _ButtonAnimationState extends State<ButtonAnimation>
         .animate(_animationController)
           ..addStatusListener((status) {
             if (status == AnimationStatus.completed) {
-              setState(() {
+              setState(() async {
                 animationComplete = true;
                 barColorOpacity = .6;
+                barColor = Color(0xFF33353E);
+                if (deliverStatus == "offer_offered") {
+                  statusCode = await getStatusOrder('offer_accepted', orderDetail['offer']['uuid'], arrivalTime, null,);
+                  await deliverInitData();
+                } else if (deliverStatus == "offer_accepted") {
+                  setState(() {
+                    clientVisibility = true;
+                  });
+                  statusCode = await getStatusOrder('order_start', orderDetail['offer']['uuid'], null, null);
+                  await deliverInitData();
+                } else if(deliverStatus == "order_start") {
+                  setState(() {
+                    widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
+                  });
+                  Navigator.pop(context);
+                }
+                setState(() {
+                  widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
+                });
+                Navigator.pop(context);
               });
             }
           });
@@ -105,11 +126,6 @@ class _ButtonAnimationState extends State<ButtonAnimation>
                         });
                         statusCode = await getStatusOrder('order_start', orderDetail['offer']['uuid'], null, null);
                         await deliverInitData();
-                      } else if(deliverStatus == "order_start") {
-                        setState(() {
-                          widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
-                        });
-                        Navigator.pop(context);
                       }
                       setState(() {
                         widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
@@ -121,7 +137,7 @@ class _ButtonAnimationState extends State<ButtonAnimation>
                       height: 60,
                       decoration: BoxDecoration(
                           color: widget.primaryColor,
-                          borderRadius: BorderRadius.circular(3)),
+                          borderRadius: BorderRadius.circular(4.0)),
                       child: Row(
                         children: <Widget>[
                           Expanded(
