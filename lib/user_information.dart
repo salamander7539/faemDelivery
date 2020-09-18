@@ -198,7 +198,7 @@ class _UserInformationState extends State<UserInformation> {
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0, color: Colors.black),
                         ),
                         subtitle: Text(
-                          'Доставки за неделю',
+                          'Доставки за день',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: Color(0xFF9D9C97)),
                         ),
                       ),
