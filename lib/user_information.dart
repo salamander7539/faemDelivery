@@ -136,7 +136,7 @@ class _UserInformationState extends State<UserInformation> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Flexible(
-                    flex: 5,
+                    flex: 4,
                     child: Container(
                       child: ListTile(
                         title: Text(
@@ -155,7 +155,7 @@ class _UserInformationState extends State<UserInformation> {
                     child: Container(
                       color: Colors.white,
                       child: Container(
-                        margin: EdgeInsets.only(right: 10.0),
+                        margin: EdgeInsets.only(left: 4.0, right: 12.0),
                         decoration: BoxDecoration(
                           border: Border.all(
                             color: Color(0xFF9D9C97),
@@ -190,7 +190,7 @@ class _UserInformationState extends State<UserInformation> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Flexible(
-                    flex: 4,
+                    flex: 5,
                     child: Container(
                       child: ListTile(
                         title: Text(
