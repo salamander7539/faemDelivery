@@ -190,7 +190,7 @@ class _UserInformationState extends State<UserInformation> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Flexible(
-                    flex: 5,
+                    flex: 4,
                     child: Container(
                       child: ListTile(
                         title: Text(

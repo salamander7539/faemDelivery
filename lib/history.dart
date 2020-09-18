@@ -95,6 +95,8 @@ class _HistoryListState extends State<HistoryList> {
         backgroundColor: Colors.white,
       ),
       body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
         color: Colors.white,
         child: FutureBuilder(
           future: getHistoryData(),
@@ -179,6 +181,10 @@ class _HistoryListState extends State<HistoryList> {
                     ),
                   );
                 },
+              );
+            } else {
+              return Container(
+                color: Colors.white,
               );
             }
           },
