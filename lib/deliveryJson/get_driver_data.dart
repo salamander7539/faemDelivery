@@ -19,6 +19,6 @@ Future<void> getDriverData() async {
     balance = jsonResponse['balance'];
     karma = jsonResponse['karma'];
   } else {
-    print("alerts: ${response.body}");
+    print("driver: ${response.body}");
   }
 }

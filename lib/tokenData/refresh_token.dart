@@ -1,4 +1,5 @@
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -6,7 +7,7 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String newToken, clientCode, newRefToken;
-var updateResponse;
+var updateResponse, updateCode;
 
 Future<dynamic> updateRefreshToken(String refresh) async {
   TokenNewData tokenNewData;
@@ -22,6 +23,7 @@ Future<dynamic> updateRefreshToken(String refresh) async {
     updateResponse = json.decode(response.body);
     print(response.body);
     tokenNewData = new TokenNewData.fromJson(updateResponse);
+    updateCode = updateResponse['code'];
     newToken = updateResponse['token'];
     sharedPreferences.setString('token', updateResponse['token']);
     sharedPreferences.setString('refToken', updateResponse['refresh_token']);
@@ -31,9 +33,11 @@ Future<dynamic> updateRefreshToken(String refresh) async {
     sharedPreferences.setString('jwt', newToken);
     print("newRefToken: $newRefToken");
   } else {
-    print("Error refresh with code: ${response.statusCode}");
+    updateResponse = json.decode(response.body);
+    updateCode = updateResponse['code'];
+    print("Error refresh with code: ${response.body}");
   }
-  return updateResponse;
+  return updateCode;
 }
 
 class TokenNewData {

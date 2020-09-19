@@ -96,12 +96,11 @@ class _DeliveryListState extends State<DeliveryList> {
   void initState() {
     opacity = 0.5;
     isSwitched = false;
-    _getCurrentLocationStart();
     checkLoginStatus();
     new Timer.periodic(oneMinute, (Timer t) async {
       sharedPreferences = await SharedPreferences.getInstance();
-      answer = await updateRefreshToken(sharedPreferences.get('refToken'));
-      if (sharedPreferences.get('token') != null) {
+      if (sharedPreferences.get('refToken') != null) {
+        await updateRefreshToken(sharedPreferences.get('refToken'));
         await sendLocation();
       }
     });
@@ -143,8 +142,14 @@ class _DeliveryListState extends State<DeliveryList> {
   checkLoginStatus() async {
     sharedPreferences = await SharedPreferences.getInstance();
     print("token: ${sharedPreferences.getString('token')}");
-    if(sharedPreferences.getString('token') == null) {
+    if(sharedPreferences.getString('refToken') == null) {
       Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => AuthPhoneScreen()), (route) => false);
+    } else if (sharedPreferences.getString('refToken') != null) {
+      answer = await updateRefreshToken(sharedPreferences.get('refToken'));
+      if (answer == 401) {
+        _showDialog(updateResponse['message']);
+        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => AuthPhoneScreen()), (route) => false);
+      }
     }
   }
 
@@ -156,17 +161,17 @@ class _DeliveryListState extends State<DeliveryList> {
   //   } else if (result == ConnectivityResult.wifi) {}
   // }
   //
-  // _showDialog(title, text) {
-  //   Fluttertoast.showToast(
-  //       msg: "$title $text",
-  //       toastLength: Toast.LENGTH_SHORT,
-  //       gravity: ToastGravity.CENTER,
-  //       timeInSecForIosWeb: 1,
-  //       backgroundColor: Colors.red,
-  //       textColor: Colors.white,
-  //       fontSize: 16.0,
-  //   );
-  // }
+  _showDialog(text) {
+    Fluttertoast.showToast(
+        msg: "$text",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black,
+        fontSize: 16.0,
+    );
+  }
 
   // Future<bool> _onBackPressed() {
   //   return showDialog(context: context,
@@ -197,7 +202,8 @@ class _DeliveryListState extends State<DeliveryList> {
                 Icons.menu,
                 color: Colors.black,
               ),
-              onPressed: () {
+              onPressed: () async {
+                await updateRefreshToken(sharedPreferences.get('refToken'));
                 Scaffold.of(context).openDrawer();
               },
             );
