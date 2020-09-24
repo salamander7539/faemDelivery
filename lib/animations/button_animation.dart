@@ -74,13 +74,13 @@ class _ButtonAnimationState extends State<ButtonAnimation>
                 barColorOpacity = .6;
                 barColor = Color(0xFF33353E);
                 if (deliverStatus == "offer_offered") {
-                  statusCode = await getStatusOrder('offer_accepted', orderDetail['offer']['uuid'], arrivalTime, null,);
+                  statusCode = await getStatusOrder('offer_accepted', initData['order_data']['offer']['uuid'], arrivalTime, null,);
                   await deliverInitData();
                 } else if (deliverStatus == "offer_accepted") {
                   setState(() {
                     clientVisibility = true;
                   });
-                  statusCode = await getStatusOrder('order_start', orderDetail['offer']['uuid'], null, null);
+                  statusCode = await getStatusOrder('order_start', initData['order_data']['offer']['uuid'], null, null);
                   await deliverInitData();
                 } else if(deliverStatus == "order_start") {
                   setState(() {
@@ -118,13 +118,13 @@ class _ButtonAnimationState extends State<ButtonAnimation>
                   child: InkWell(
                     onTap: () async {
                       if (deliverStatus == "offer_offered") {
-                        statusCode = await getStatusOrder('offer_accepted', orderDetail['offer']['uuid'], arrivalTime, null,);
+                        statusCode = await getStatusOrder('offer_accepted', initData['order_data']['offer']['uuid'], arrivalTime, null,);
                         await deliverInitData();
                       } else if (deliverStatus == "offer_accepted") {
                         setState(() {
                           clientVisibility = true;
                         });
-                        statusCode = await getStatusOrder('order_start', orderDetail['offer']['uuid'], null, null);
+                        statusCode = await getStatusOrder('order_start', initData['order_data']['offer']['uuid'], null, null);
                         await deliverInitData();
                       }
                       setState(() {

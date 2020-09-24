@@ -147,8 +147,16 @@ class _DeliveryListState extends State<DeliveryList> {
     } else if (sharedPreferences.getString('refToken') != null) {
       answer = await updateRefreshToken(sharedPreferences.get('refToken'));
       if (answer == 401) {
+        await switchDeliverStatus('online');
         _showDialog(updateResponse['message']);
         Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => AuthPhoneScreen()), (route) => false);
+      } else {
+        await deliverInitData();
+        if (initData['order_data'] != null) {
+          isSwitched = true;
+          opacity = 1;
+          Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => OrderPage()));
+        }
       }
     }
   }
@@ -160,7 +168,7 @@ class _DeliveryListState extends State<DeliveryList> {
   //   } else if (result == ConnectivityResult.mobile) {
   //   } else if (result == ConnectivityResult.wifi) {}
   // }
-  //
+
   _showDialog(text) {
     Fluttertoast.showToast(
         msg: "$text",
@@ -204,6 +212,7 @@ class _DeliveryListState extends State<DeliveryList> {
               ),
               onPressed: () async {
                 await updateRefreshToken(sharedPreferences.get('refToken'));
+                await getHistoryData();
                 Scaffold.of(context).openDrawer();
               },
             );
@@ -486,7 +495,7 @@ class _DeliveryListState extends State<DeliveryList> {
                           ),
                         ),
                         Text(
-                          "Чтобы получть доступ к свободным заказам пожалуйста перейдите в онлайн",
+                          "Чтобы получить доступ к свободным заказам, пожалуйста перейдите в онлайн",
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,

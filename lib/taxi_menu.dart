@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
+import 'package:faem_delivery/deliveryJson/switch_deliver_status.dart';
 import 'package:faem_delivery/history.dart';
+import 'package:faem_delivery/main.dart';
 import 'package:faem_delivery/map_screen.dart';
 import 'package:faem_delivery/user_information.dart';
 import 'package:flutter/material.dart';
@@ -37,8 +39,7 @@ class TaxiMenu extends StatelessWidget {
                     child: ListTile(
                       leading: Transform(
                         transform:
-                        Matrix4.translationValues(
-                            -25.0, 0.0, 0.0),
+                        Matrix4.translationValues(-25.0, 0.0, 0.0),
                         child: CircleAvatar(
                           radius: 54.0,
                           child: Image.asset('images/icons/deliver_icon.png'),
@@ -153,7 +154,8 @@ class TaxiMenu extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     child: FlatButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        await switchDeliverStatus('offline');
                         sharedPreferences.clear();
                         exit(0);
                         // Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => AuthPhoneScreen()), (route) => false);
