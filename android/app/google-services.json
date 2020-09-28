@@ -8,7 +8,43 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:165429683269:android:5aca7d353c29b590c9af2c",
+        "mobilesdk_app_id": "1:165429683269:android:8595f6ae2a69bf42c9af2c",
+        "android_client_info": {
+          "package_name": "com.example.ebanyi_fcm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "165429683269-scvge7a9itvsmfnjffehln1dj4m9hc3e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7rsfzVN6EkwvEghTGCuPVCCMhm-Afrxs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "165429683269-scvge7a9itvsmfnjffehln1dj4m9hc3e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "165429683269-iggj88ptslio568jn5lvr1f3pmhp0pum.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "ru.msofter.faem.faem-deliveryC"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:165429683269:android:696d5427f8675a88c9af2c",
         "android_client_info": {
           "package_name": "com.example.faem_delivery"
         }
@@ -32,10 +68,10 @@
               "client_type": 3
             },
             {
-              "client_id": "165429683269-an7qafpfstg06kv5o7mg2l3c8ja1euoq.apps.googleusercontent.com",
+              "client_id": "165429683269-iggj88ptslio568jn5lvr1f3pmhp0pum.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.foodDelivery"
+                "bundle_id": "ru.msofter.faem.faem-deliveryC"
               }
             }
           ]
@@ -68,10 +104,10 @@
               "client_type": 3
             },
             {
-              "client_id": "165429683269-an7qafpfstg06kv5o7mg2l3c8ja1euoq.apps.googleusercontent.com",
+              "client_id": "165429683269-iggj88ptslio568jn5lvr1f3pmhp0pum.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.foodDelivery"
+                "bundle_id": "ru.msofter.faem.faem-deliveryC"
               }
             }
           ]
@@ -104,10 +140,10 @@
               "client_type": 3
             },
             {
-              "client_id": "165429683269-an7qafpfstg06kv5o7mg2l3c8ja1euoq.apps.googleusercontent.com",
+              "client_id": "165429683269-iggj88ptslio568jn5lvr1f3pmhp0pum.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.foodDelivery"
+                "bundle_id": "ru.msofter.faem.faem-deliveryC"
               }
             }
           ]
@@ -140,10 +176,10 @@
               "client_type": 3
             },
             {
-              "client_id": "165429683269-an7qafpfstg06kv5o7mg2l3c8ja1euoq.apps.googleusercontent.com",
+              "client_id": "165429683269-iggj88ptslio568jn5lvr1f3pmhp0pum.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.foodDelivery"
+                "bundle_id": "ru.msofter.faem.faem-deliveryC"
               }
             }
           ]
@@ -176,10 +212,10 @@
               "client_type": 3
             },
             {
-              "client_id": "165429683269-an7qafpfstg06kv5o7mg2l3c8ja1euoq.apps.googleusercontent.com",
+              "client_id": "165429683269-iggj88ptslio568jn5lvr1f3pmhp0pum.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.foodDelivery"
+                "bundle_id": "ru.msofter.faem.faem-deliveryC"
               }
             }
           ]
@@ -212,10 +248,10 @@
               "client_type": 3
             },
             {
-              "client_id": "165429683269-an7qafpfstg06kv5o7mg2l3c8ja1euoq.apps.googleusercontent.com",
+              "client_id": "165429683269-iggj88ptslio568jn5lvr1f3pmhp0pum.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.foodDelivery"
+                "bundle_id": "ru.msofter.faem.faem-deliveryC"
               }
             }
           ]
@@ -248,10 +284,10 @@
               "client_type": 3
             },
             {
-              "client_id": "165429683269-an7qafpfstg06kv5o7mg2l3c8ja1euoq.apps.googleusercontent.com",
+              "client_id": "165429683269-iggj88ptslio568jn5lvr1f3pmhp0pum.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.foodDelivery"
+                "bundle_id": "ru.msofter.faem.faem-deliveryC"
               }
             }
           ]
@@ -284,10 +320,10 @@
               "client_type": 3
             },
             {
-              "client_id": "165429683269-an7qafpfstg06kv5o7mg2l3c8ja1euoq.apps.googleusercontent.com",
+              "client_id": "165429683269-iggj88ptslio568jn5lvr1f3pmhp0pum.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.foodDelivery"
+                "bundle_id": "ru.msofter.faem.faem-deliveryC"
               }
             }
           ]
