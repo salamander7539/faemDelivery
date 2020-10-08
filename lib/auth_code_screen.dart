@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'deliveryJson/deliver_auth.dart';
 import 'deliveryJson/remind_password.dart';
+import 'main.dart';
 
 class AuthCodeScreen extends StatefulWidget {
   @override
@@ -18,7 +19,7 @@ class AuthCodeScreen extends StatefulWidget {
 }
 
 final Stopwatch stopwatch = new Stopwatch();
-var milliseconds;
+
 
 Position currentPosition;
 
@@ -235,11 +236,8 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                                 setState(() {
                                   sharedPreferences.setString('token', updateResponse['token']);
                                 });
-                                stopwatch.start();
-                                stopwatch.stop();
-                                milliseconds = stopwatch.elapsedMicroseconds;
+                                milliseconds = (DateTime.now().millisecondsSinceEpoch / 1000).round();
                                 print("time: $milliseconds ");
-                                await getOrdersData();
                                 Navigator.pushNamed(context, "/deliveryPage");
                                 pinController.clear();
                               } else {

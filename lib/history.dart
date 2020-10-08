@@ -110,7 +110,7 @@ class _HistoryListState extends State<HistoryList> {
                   var plusThreeHours = dateString.add(new Duration(hours: 3));
                   String cancelTime = DateFormat("hh:mm:ss").format(plusThreeHours);
                   return Container(
-                    height: 77.0,
+
                     margin: EdgeInsets.only(top: 10.0, left: 17.0, right: 17.0),
                     decoration: BoxDecoration(
                       border: Border.all(color: Color(0xFFECEEEC)),
@@ -134,12 +134,22 @@ class _HistoryListState extends State<HistoryList> {
                                   ),
                                 ),
                               ),
-                              Text(
-                                "${historyData['orders'][index]['routes'][0]['value']}",
-                                style: TextStyle(
-                                  fontSize: 24.0,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: "UniNeue",
+                              Container(
+                                width: MediaQuery.of(context).size.width * 0.75,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "${historyData['orders'][index]['routes'][0]['value']}",
+                                      style: TextStyle(
+                                        fontSize: 24.0,
+                                        fontWeight: FontWeight.bold,
+                                        height: 1,
+                                        fontFamily: "UniNeue",
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -150,28 +160,31 @@ class _HistoryListState extends State<HistoryList> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              '${historyData['orders'][index]['routes'][0]['street']}, ${historyData['orders'][index]['routes'][0]['house']} • $cancelTime',
-                              // "${historyData['order']['routes'][0]['street']}, ${historyData['order']['routes'][0]['house']} • ",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: (16.0),
-                                fontFamily: 'UniNeue',
-                                fontWeight: FontWeight.bold,
+                            Container(
+
+                              child: Column(
+                                children: [
+                                  Text(
+                                    '${historyData['orders'][index]['routes'][0]['street']}, ${historyData['orders'][index]['routes'][0]['house']} • $cancelTime',
+                                    // "${historyData['order']['routes'][0]['street']}, ${historyData['order']['routes'][0]['house']} • ",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: (16.0),
+                                      fontFamily: 'UniNeue',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             Transform(
                               transform: Matrix4.translationValues(0.0, 0.0, 0.0),
-                              child: Container(
-                                width: 17.0,
-                                height: 15.0,
-                                child: Text(
-                                  '${historyData['orders'][index]['tariff']['total_price']}₽',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 14.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              child: Text(
+                                '${historyData['orders'][index]['tariff']['total_price']}₽',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14.0,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
@@ -185,6 +198,16 @@ class _HistoryListState extends State<HistoryList> {
             } else {
               return Container(
                 color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8.0, top: 80.0),
+                  child: Text('Вы пока не выполнили ни одного заказа',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 40.0,
+                    ),
+                  ),
+                ),
               );
             }
           },

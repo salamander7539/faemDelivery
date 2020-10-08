@@ -1,10 +1,11 @@
+import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
 import 'deliver_verification.dart';
 
-var countOfOrders, historyData;
+var countOfOrders, historyData, earningsToday;
 
 Future<void> getHistoryData() async {
   var url = 'https://driver.apis.stage.faem.pro/api/v2/incomedata';
@@ -17,7 +18,9 @@ Future<void> getHistoryData() async {
     // print('historyData: $jsonResponse');
     historyData = jsonResponse;
     countOfOrders = jsonResponse['count_of_completed_orders'];
+    earningsToday = jsonResponse['earnings_today'];
+
   } else {
-    print("alerts: ${response.body}");
+    print("history: ${response.body}");
   }
 }

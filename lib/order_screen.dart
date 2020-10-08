@@ -8,11 +8,13 @@ import 'package:faem_delivery/deliveryJson/update_status.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'deliveryJson/get_orders.dart';
 import 'deliveryJson/switch_deliver_status.dart';
 import 'main.dart';
+import 'package:map_launcher/map_launcher.dart';
 
 class OrderPage extends StatefulWidget {
   @override
@@ -34,6 +36,7 @@ class _OrderPageState extends State<OrderPage> {
       buttonStatus = newStatus;
     });
   }
+
 
   createAlertDialog(
       BuildContext context, String status, String mes, String buttonState) {
@@ -96,6 +99,7 @@ class _OrderPageState extends State<OrderPage> {
                     print("buttonState $buttonState");
                     await getStatusOrder('order_payment',
                         orderDetail['offer']['uuid'], null, distance);
+
                     await deliverInitData();
                     setState(() {
                       buttonStatus = buttonState;
@@ -158,6 +162,7 @@ class _OrderPageState extends State<OrderPage> {
 
   @override
   void initState() {
+    deniedCallVisibility = false;
     if (initData['order_data'] == null) {
       String orderId = orderDetail['order']['uuid'];
       currentId = orderId.substring(orderId.length - 4);
@@ -179,7 +184,7 @@ class _OrderPageState extends State<OrderPage> {
       } else if (orderDetail['order']['routes'][0]['category'] == 'Магазины') {
         category = 'магазина';
       } else {
-        category = 'пункта назначения';
+        category = 'заведения';
       }
       orderComment = (orderDetail['order']['comment'])
               .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
@@ -218,7 +223,7 @@ class _OrderPageState extends State<OrderPage> {
       } else if (initData['order_data']['order']['routes'][0]['category'] == 'Магазины') {
         category = 'магазина';
       } else {
-        category = 'пункта назначения';
+        category = 'заведения';
       }
       print("features: ${(initData['order_data']['order']['features'])}");
       if ((initData['order_data']['order']['features']) == null ||
@@ -267,6 +272,9 @@ class _OrderPageState extends State<OrderPage> {
           ['comment']
               : null;
           buttonStatus = 'ОТДАЛ ЗАКАЗ';
+          setState(() {
+            deniedCallVisibility = true;
+          });
           break;
         default:
           switchToClient = 'Комментрарий ресторана';
@@ -291,9 +299,9 @@ class _OrderPageState extends State<OrderPage> {
     var statusCode;
     return WillPopScope(
       onWillPop: () async {
-        if (orders[chosenIndex]['offer']['uuid'] != null) {
+        if (orderDetail['offer']['uuid'] != null) {
           await getStatusOrder("offer_rejected",
-              orders[chosenIndex]['offer']['uuid'], null, null);
+              orderDetail['offer']['uuid'], null, null);
         }
         Navigator.pop(context);
         return null;
@@ -339,9 +347,9 @@ class _OrderPageState extends State<OrderPage> {
                     color: Colors.black,
                   ),
                   onPressed: () async {
-                    if (orders[chosenIndex]['offer']['uuid'] != null) {
+                    if (orderDetail['offer']['uuid'] != null) {
                       await getStatusOrder("offer_rejected",
-                          orders[chosenIndex]['offer']['uuid'], null, null);
+                          orderDetail['offer']['uuid'], null, null);
                     }
                     Navigator.pop(context);
                   },
@@ -444,10 +452,7 @@ class _OrderPageState extends State<OrderPage> {
                                           child: Padding(
                                             padding: const EdgeInsets.symmetric(
                                                 vertical: 6.0, horizontal: 20.0),
-                                            child: Text(
-                                              (orderDetail['order']['tariff']
-                                                      ['payment_type'])
-                                                  .toUpperCase(),
+                                            child: Text(orderDetail['order'] != null ? (orderDetail['order']['tariff']['payment_type']).toUpperCase() : '',
                                               style: TextStyle(
                                                 fontSize: 11.0,
                                                 color: Color(0xFFFD6F6D),
@@ -484,12 +489,21 @@ class _OrderPageState extends State<OrderPage> {
                                               ),
                                             ),
                                           ),
-                                          Text(
-                                            "${orderDetail['order']['routes'][0]['value']}",
-                                            style: TextStyle(
-                                              fontSize: 24.0,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: "UniNeue",
+                                          Container(
+                                            width: MediaQuery.of(context).size.width * 0.8,
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "${orderDetail['order']['routes'][0]['value']}",
+                                                  style: TextStyle(
+                                                    fontSize: 24.0,
+                                                    height: 1.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: "UniNeue",
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ],
@@ -509,29 +523,28 @@ class _OrderPageState extends State<OrderPage> {
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        // Container(
-                                        //   width: 17.0,
-                                        //   height: 15.0,
-                                        //   child: ConstrainedBox(
-                                        //     constraints: BoxConstraints.expand(),
-                                        //     child: Ink.image(
-                                        //       image: AssetImage('images/icons/map_icon.png'),
-                                        //       fit: BoxFit.fill,
-                                        //       child: InkWell(
-                                        //         onTap: () {
-                                        //           Navigator.of(context)
-                                        //               .push(MaterialPageRoute(
-                                        //             builder: (context) => MapScreen(
-                                        //                 orderDetail['order']['routes'][0]
-                                        //                 ['lat'],
-                                        //                 orderDetail['order']['routes'][0]
-                                        //                 ['lon']),
-                                        //           ));
-                                        //         },
-                                        //       ),
-                                        //     ),
-                                        //   ),
-                                        // ),
+                                        Container(
+                                          width: 17.0,
+                                          height: 15.0,
+                                          child: ConstrainedBox(
+                                            constraints: BoxConstraints.expand(),
+                                            child: Ink.image(
+                                              image: AssetImage('images/icons/map_icon.png'),
+                                              fit: BoxFit.fill,
+                                              child: InkWell(
+                                                onTap: () async {
+                                                  final availableMaps = await MapLauncher.installedMaps;
+                                                  print(availableMaps);
+
+                                                  await availableMaps.first.showMarker(
+                                                    coords: Coords(orderDetail['order']['routes'][0]['lat'], orderDetail['order']['routes'][0]['lon']),
+                                                    title: orderDetail['order']['routes'][0]['value'],
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -549,28 +562,36 @@ class _OrderPageState extends State<OrderPage> {
                                   child: ListTile(
                                     title: Padding(
                                       padding: const EdgeInsets.only(top: 8.0),
-                                      child: Container(
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          children: [
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.only(right: 8.0),
-                                              child: Icon(Icons.person_outline),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(right: 8.0),
+                                            child: Icon(Icons.person_outline),
+                                          ),
+                                          Container(
+                                            width: MediaQuery.of(context).size.width * 0.8,
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  (orderDetail['order']['routes']).length > 1 ? orderDetail['order']['routes'][1]['value'] : "",
+                                                  style: TextStyle(
+                                                    fontSize: 24.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    height: 1.0,
+                                                    fontFamily: "UniNeue",
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            Text(
-                                              (orderDetail['order']['routes']).length > 1 ? orderDetail['order']['routes'][1]['value'] : "",
-                                              style: TextStyle(
-                                                fontSize: 24.0,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: "UniNeue",
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     subtitle: Container(
+                                      margin: EdgeInsets.only(bottom: 8.0),
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
@@ -586,29 +607,28 @@ class _OrderPageState extends State<OrderPage> {
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          // Container(
-                                          //   width: 17.0,
-                                          //   height: 15.0,
-                                          //   child: ConstrainedBox(
-                                          //     constraints: BoxConstraints.expand(),
-                                          //     child: Ink.image(
-                                          //       image: AssetImage('images/icons/map_icon.png'),
-                                          //       fit: BoxFit.fill,
-                                          //       child: InkWell(
-                                          //         onTap: () {
-                                          //           Navigator.of(context)
-                                          //               .push(MaterialPageRoute(
-                                          //             builder: (context) => MapScreen(
-                                          //                 orderDetail['order']['routes'][1]
-                                          //                 ['lat'],
-                                          //                 orderDetail['order']['routes'][1]
-                                          //                 ['lon']),
-                                          //           ));
-                                          //         },
-                                          //       ),
-                                          //     ),
-                                          //   ),
-                                          // ),
+                                          Container(
+                                            width: 17.0,
+                                            height: 15.0,
+                                            child: ConstrainedBox(
+                                              constraints: BoxConstraints.expand(),
+                                              child: Ink.image(
+                                                image: AssetImage('images/icons/map_icon.png'),
+                                                fit: BoxFit.fill,
+                                                child: InkWell(
+                                                  onTap: () async {
+                                                    final availableMaps = await MapLauncher.installedMaps;
+                                                    print(availableMaps);
+
+                                                    await availableMaps.first.showMarker(
+                                                      coords: Coords(orderDetail['order']['routes'][1]['lat'], orderDetail['order']['routes'][1]['lon']),
+                                                      title: orderDetail['order']['routes'][1]['value'],
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -750,7 +770,7 @@ class _OrderPageState extends State<OrderPage> {
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.only(bottom: 16.0),
+                                padding: const EdgeInsets.only(bottom: 56.0),
                                 child: Container(
                                   child: ListTile(
                                     title: Text(
@@ -888,6 +908,7 @@ class _OrderPageState extends State<OrderPage> {
                                               deliverStatus = initData['order_data']
                                                   ['order_state']['value'];
                                               buttonStatus = 'ОТДАЛ ЗАКАЗ';
+                                                deniedCallVisibility = true;
                                             });
                                           } else if (statusCode == 406) {
                                             createAlertDialog(
@@ -898,6 +919,7 @@ class _OrderPageState extends State<OrderPage> {
                                             await deliverInitData();
                                             setState(() async {
                                               await deliverInitData();
+                                              deniedCallVisibility = true;
                                             });
                                           }
                                         }
@@ -1182,64 +1204,51 @@ class _OrderPageState extends State<OrderPage> {
                               Container(
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 8.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(14.0),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "Доставка из $category",
-                                              style: TextStyle(
-                                                fontSize: 16.0,
-                                                color: Color(0xFFFD6F6D),
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(14.0),
+                                          child: Text(
+                                            "Доставка из $category",
+                                            style: TextStyle(
+                                              fontSize: 16.0,
+                                              color: Color(0xFFFD6F6D),
+                                              fontWeight: FontWeight.bold,
                                             ),
-                                            // Visibility(
-                                            //   visible: phoneVisibility,
-                                            //   child: Text(
-                                            //     "(Время прибытия)",
-                                            //     style: TextStyle(
-                                            //       fontSize: 14.0,
-                                            //       color: Colors.black,
-                                            //       fontWeight: FontWeight.bold,
-                                            //     ),
-                                            //   ),
-                                            // ),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.rectangle,
-                                            borderRadius: BorderRadius.circular(36.0),
-                                            color: Colors.white,
-                                            border:
-                                            Border.all(color: Color(0xFFFD6F6D)),
                                           ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 6.0, horizontal: 20.0),
-                                            child: Text(
-                                              (initData['order_data']['order']['tariff']
-                                              ['payment_type'])
-                                                  .toUpperCase(),
-                                              style: TextStyle(
-                                                fontSize: 11.0,
-                                                color: Color(0xFFFD6F6D),
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: "UniNeue",
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.rectangle,
+                                              borderRadius: BorderRadius.circular(36.0),
+                                              color: Colors.white,
+                                              border:
+                                              Border.all(color: Color(0xFFFD6F6D)),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                  vertical: 6.0, horizontal: 20.0),
+                                              child: Text(
+                                                (initData['order_data']['order']['tariff']
+                                                ['payment_type'])
+                                                    .toUpperCase(),
+                                                style: TextStyle(
+                                                  fontSize: 11.0,
+                                                  color: Color(0xFFFD6F6D),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: "UniNeue",
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1250,30 +1259,42 @@ class _OrderPageState extends State<OrderPage> {
                                 child: ListTile(
                                   title: Padding(
                                     padding: const EdgeInsets.only(top: 8.0),
-                                    child: Container(
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(right: 8.0),
-                                            child: Container(
-                                              width: 18.0,
-                                              height: 19.0,
-                                              child: Image.asset(
-                                                "images/icons/restaurant_icon.png",
-                                                fit: BoxFit.fill,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Container(
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(right: 8.0),
+                                              child: Container(
+                                                width: 18.0,
+                                                height: 19.0,
+                                                child: Image.asset(
+                                                  "images/icons/restaurant_icon.png",
+                                                  fit: BoxFit.fill,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          Text(
-                                            "${initData['order_data']['order']['routes'][0]['value']}",
-                                            style: TextStyle(
-                                              fontSize: 24.0,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: "UniNeue",
+                                            Container(
+                                              width: MediaQuery.of(context).size.width * 0.8,
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "${initData['order_data']['order']['routes'][0]['value']}",
+                                                    style: TextStyle(
+                                                      fontSize: 24.0,
+                                                      height: 1.0,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontFamily: "UniNeue",
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -1290,29 +1311,28 @@ class _OrderPageState extends State<OrderPage> {
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        // Container(
-                                        //   width: 17.0,
-                                        //   height: 15.0,
-                                        //   child: ConstrainedBox(
-                                        //     constraints: BoxConstraints.expand(),
-                                        //     child: Ink.image(
-                                        //       image: AssetImage('images/icons/map_icon.png'),
-                                        //       fit: BoxFit.fill,
-                                        //       child: InkWell(
-                                        //         onTap: () {
-                                        //           Navigator.of(context)
-                                        //               .push(MaterialPageRoute(
-                                        //             builder: (context) => MapScreen(
-                                        //                 orderDetail['order']['routes'][0]
-                                        //                 ['lat'],
-                                        //                 orderDetail['order']['routes'][0]
-                                        //                 ['lon']),
-                                        //           ));
-                                        //         },
-                                        //       ),
-                                        //     ),
-                                        //   ),
-                                        // ),
+                                        Container(
+                                          width: 17.0,
+                                          height: 15.0,
+                                          child: ConstrainedBox(
+                                            constraints: BoxConstraints.expand(),
+                                            child: Ink.image(
+                                              image: AssetImage('images/icons/map_icon.png'),
+                                              fit: BoxFit.fill,
+                                              child: InkWell(
+                                                onTap: () async {
+                                                  final availableMaps = await MapLauncher.installedMaps;
+                                                  print(availableMaps);
+
+                                                  await availableMaps.first.showMarker(
+                                                    coords: Coords(initData['order_data']['order']['routes'][0]['lat'], initData['order_data']['order']['routes'][0]['lon']),
+                                                    title: initData['order_data']['order']['routes'][0]['value'],
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -1330,28 +1350,41 @@ class _OrderPageState extends State<OrderPage> {
                                   child: ListTile(
                                     title: Padding(
                                       padding: const EdgeInsets.only(top: 8.0),
-                                      child: Container(
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          children: [
-                                            Padding(
-                                              padding:
-                                              const EdgeInsets.only(right: 8.0),
-                                              child: Icon(Icons.person_outline),
-                                            ),
-                                            Text(
-                                              (initData['order_data']['order']['routes']).length > 1 ? initData['order_data']['order']['routes'][1]['value'] : "",
-                                              style: TextStyle(
-                                                fontSize: 24.0,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: "UniNeue",
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Container(
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Padding(
+                                                padding:
+                                                const EdgeInsets.only(right: 8.0),
+                                                child: Icon(Icons.person_outline),
                                               ),
-                                            ),
-                                          ],
+                                              Container(
+                                                width: MediaQuery.of(context).size.width * 0.8,
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      (initData['order_data']['order']['routes']).length > 1 ? initData['order_data']['order']['routes'][1]['value'] : "",
+                                                      style: TextStyle(
+                                                        fontSize: 24.0,
+                                                        height: 1.0,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontFamily: "UniNeue",
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
                                     subtitle: Container(
+                                      margin: EdgeInsets.only(bottom: 8.0),
                                       child: Row(
                                         mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -1367,29 +1400,27 @@ class _OrderPageState extends State<OrderPage> {
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          // Container(
-                                          //   width: 17.0,
-                                          //   height: 15.0,
-                                          //   child: ConstrainedBox(
-                                          //     constraints: BoxConstraints.expand(),
-                                          //     child: Ink.image(
-                                          //       image: AssetImage('images/icons/map_icon.png'),
-                                          //       fit: BoxFit.fill,
-                                          //       child: InkWell(
-                                          //         onTap: () {
-                                          //           Navigator.of(context)
-                                          //               .push(MaterialPageRoute(
-                                          //             builder: (context) => MapScreen(
-                                          //                 orderDetail['order']['routes'][1]
-                                          //                 ['lat'],
-                                          //                 orderDetail['order']['routes'][1]
-                                          //                 ['lon']),
-                                          //           ));
-                                          //         },
-                                          //       ),
-                                          //     ),
-                                          //   ),
-                                          // ),
+                                          Container(
+                                            width: 17.0,
+                                            height: 15.0,
+                                            child: ConstrainedBox(
+                                              constraints: BoxConstraints.expand(),
+                                              child: Ink.image(
+                                                image: AssetImage('images/icons/map_icon.png'),
+                                                fit: BoxFit.fill,
+                                                child: InkWell(
+                                                  onTap: () async {
+                                                    final availableMaps = await MapLauncher.installedMaps;
+                                                    print(availableMaps);
+                                                    await availableMaps.first.showMarker(
+                                                      coords: Coords(initData['order_data']['order']['routes'][1]['lat'], initData['order_data']['order']['routes'][1]['lon']),
+                                                      title: initData['order_data']['order']['routes'][1]['value'],
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -1669,6 +1700,7 @@ class _OrderPageState extends State<OrderPage> {
                                               deliverStatus = initData['order_data']['order_data']
                                               ['order_state']['value'];
                                               buttonStatus = 'ОТДАЛ ЗАКАЗ';
+                                              deniedCallVisibility = true;
                                             });
                                           } else if (statusCode == 406) {
                                             createAlertDialog(
@@ -1679,6 +1711,7 @@ class _OrderPageState extends State<OrderPage> {
                                             await deliverInitData();
                                             setState(() async {
                                               await deliverInitData();
+                                              deniedCallVisibility = true;
                                             });
                                           }
                                         }
@@ -1842,7 +1875,9 @@ class _OrderPageState extends State<OrderPage> {
                                   child: SizedBox(
                                     width: MediaQuery.of(context).size.width * 0.95,
                                     child: FlatButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        FlutterOpenWhatsapp.sendSingleMessage("+79891359399", "");
+                                      },
                                       color: Colors.white,
                                       child: Text(
                                         "КЛИЕНТ НЕ ВЫШЕЛ НА СВЯЗЬ",

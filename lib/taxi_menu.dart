@@ -1,17 +1,25 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
+import 'package:faem_delivery/deliveryJson/get_history_data.dart';
 import 'package:faem_delivery/deliveryJson/switch_deliver_status.dart';
 import 'package:faem_delivery/history.dart';
 import 'package:faem_delivery/main.dart';
 import 'package:faem_delivery/map_screen.dart';
 import 'package:faem_delivery/user_information.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'auth_phone_screen.dart';
 
+
+
 class TaxiMenu extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -59,7 +67,7 @@ class TaxiMenu extends StatelessWidget {
                         Matrix4.translationValues(
                             -50.0, 0.0, 0.0),
                         child: Text(
-                          'Заработок: $balance ₽',
+                          'Заработок: $earningsToday ₽',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: Color(0xFF9D9C97)),
                         ),
                       ),
@@ -140,6 +148,7 @@ class TaxiMenu extends StatelessWidget {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () {
+                        FlutterOpenWhatsapp.sendSingleMessage("+79891359399", "");
                         // Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => MapScreen()), (route) => false);
                       },
                       child: Align(
@@ -155,10 +164,23 @@ class TaxiMenu extends StatelessWidget {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () async {
+                        showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: Text(
+                                'Завершение смены',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                        );
+                        new Timer.periodic(Duration(seconds: 3), (Timer t) async {});
                         await switchDeliverStatus('offline');
                         sharedPreferences.clear();
                         exit(0);
-                        // Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => AuthPhoneScreen()), (route) => false);
                       },
                       child: Align(
                         alignment: Alignment.centerLeft,

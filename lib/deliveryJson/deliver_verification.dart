@@ -12,9 +12,8 @@ int pinAnswerCode, status;
 String refToken, token;
 SharedPreferences sharedPreferences;
 
-Future<TokenData> loadCode(String deviceId, var code) async {
+Future<dynamic> loadCode(String deviceId, var code) async {
   sharedPreferences = await SharedPreferences.getInstance();
-  TokenData getToken;
   var jsonRequest = json.encode({
     "device_id": deviceId,
     "phone": phone,
@@ -27,10 +26,9 @@ Future<TokenData> loadCode(String deviceId, var code) async {
   });
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
-    getToken = new TokenData.fromJson(jsonResponse);
-    token = getToken.token;
+    token = jsonResponse['token'];
     status = response.statusCode;
-    refToken = getToken.refresh_token;
+    refToken = jsonResponse['refresh_token'];
     print(response.body);
     print("refToken: $refToken");
   } else {
@@ -38,31 +36,5 @@ Future<TokenData> loadCode(String deviceId, var code) async {
     print('Request failed with status: ${response.statusCode}.');
     print(response.body);
   }
-  return getToken;
 }
 
-class TokenData {
-  // ignore: non_constant_identifier_names
-  final int driver_id;
-  final String token;
-  final String client_uuid;
-  final String refresh_token;
-  final int refresh_expiration;
-
-  TokenData(
-      {this.driver_id,
-      this.token,
-      this.client_uuid,
-      this.refresh_token,
-      this.refresh_expiration});
-
-  factory TokenData.fromJson(Map<String, dynamic> parsedJson) {
-    return TokenData(
-      driver_id: parsedJson["driver_id"] as int,
-      token: parsedJson["token"] as String,
-      client_uuid: parsedJson["client_uuid"] as String,
-      refresh_token: parsedJson["refresh_token"] as String,
-      refresh_expiration: parsedJson["refresh_expiration"] as int,
-    );
-  }
-}
