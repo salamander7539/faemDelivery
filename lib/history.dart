@@ -1,3 +1,5 @@
+import 'package:faem_delivery/Internet/internet_connection.dart';
+import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/deliveryJson/get_history_data.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
@@ -62,27 +64,34 @@ class _HistoryListState extends State<HistoryList> {
               child: Switch(
                 value: isSwitched,
                 onChanged: (value) async {
-                  if (this.mounted) {
-                    setState(() {
-                      isSwitched = value;
-                    });
-                  }
-                  if (isSwitched) {
-                    await updateRefreshToken(sharedPreferences.get('refToken'));
-                    await switchDeliverStatus("online");
+                  if (await Internet.checkConnection()) {
                     if (this.mounted) {
                       setState(() {
-                        opacity = 1;
+                        isSwitched = value;
                       });
+                    }
+                    if (isSwitched) {
+                      await updateRefreshToken(sharedPreferences.get('refToken'));
+                      await switchDeliverStatus("online");
+                      if (this.mounted) {
+                        setState(() {
+                          opacity = 1;
+                        });
+                      }
+                    } else {
+                      await updateRefreshToken(sharedPreferences.get('refToken'));
+                      await switchDeliverStatus("offline");
+                      if (this.mounted) {
+                        setState(() {
+                          opacity = 0.5;
+                        });
+                      }
                     }
                   } else {
-                    await updateRefreshToken(sharedPreferences.get('refToken'));
-                    await switchDeliverStatus("offline");
-                    if (this.mounted) {
-                      setState(() {
-                        opacity = 0.5;
-                      });
-                    }
+                    setState(() {
+                      isSwitched = false;
+                      PopUp.showInternetDialog();
+                    });
                   }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),
@@ -110,7 +119,6 @@ class _HistoryListState extends State<HistoryList> {
                   var plusThreeHours = dateString.add(new Duration(hours: 3));
                   String cancelTime = DateFormat("hh:mm:ss").format(plusThreeHours);
                   return Container(
-
                     margin: EdgeInsets.only(top: 10.0, left: 17.0, right: 17.0),
                     decoration: BoxDecoration(
                       border: Border.all(color: Color(0xFFECEEEC)),
@@ -161,7 +169,6 @@ class _HistoryListState extends State<HistoryList> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Container(
-
                               child: Column(
                                 children: [
                                   Text(

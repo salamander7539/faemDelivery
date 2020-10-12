@@ -1,3 +1,5 @@
+import 'package:faem_delivery/Internet/internet_connection.dart';
+import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
 import 'package:faem_delivery/deliveryJson/get_history_data.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
@@ -61,27 +63,34 @@ class _UserInformationState extends State<UserInformation> {
               child: Switch(
                 value: isSwitched,
                 onChanged: (value) async {
-                  if (this.mounted) {
-                    setState(() {
-                      isSwitched = value;
-                    });
-                  }
-                  if (isSwitched) {
-                    await updateRefreshToken(sharedPreferences.get('refToken'));
-                    await switchDeliverStatus("online");
+                  if (await Internet.checkConnection()) {
                     if (this.mounted) {
                       setState(() {
-                        opacity = 1;
+                        isSwitched = value;
                       });
+                    }
+                    if (isSwitched) {
+                      await updateRefreshToken(sharedPreferences.get('refToken'));
+                      await switchDeliverStatus("online");
+                      if (this.mounted) {
+                        setState(() {
+                          opacity = 1;
+                        });
+                      }
+                    } else {
+                      await updateRefreshToken(sharedPreferences.get('refToken'));
+                      await switchDeliverStatus("offline");
+                      if (this.mounted) {
+                        setState(() {
+                          opacity = 0.5;
+                        });
+                      }
                     }
                   } else {
-                    await updateRefreshToken(sharedPreferences.get('refToken'));
-                    await switchDeliverStatus("offline");
-                    if (this.mounted) {
-                      setState(() {
-                        opacity = 0.5;
-                      });
-                    }
+                    setState(() {
+                      isSwitched = false;
+                      PopUp.showInternetDialog();
+                    });
                   }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),

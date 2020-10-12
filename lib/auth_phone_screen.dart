@@ -297,6 +297,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                               await loadAuthData(deviceId, phone);
                               if (respCode == 200) {
                                 Navigator.pushNamed(context, "/authCodePage");
+                                phoneController.clear();
                               } else {
                                 if (this.mounted) {
                                   setState(() {

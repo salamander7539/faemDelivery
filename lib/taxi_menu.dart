@@ -1,25 +1,26 @@
 import 'dart:async';
-import 'dart:io';
-
+import 'package:faem_delivery/Internet/internet_connection.dart';
+import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
 import 'package:faem_delivery/deliveryJson/get_history_data.dart';
 import 'package:faem_delivery/deliveryJson/switch_deliver_status.dart';
 import 'package:faem_delivery/history.dart';
 import 'package:faem_delivery/main.dart';
-import 'package:faem_delivery/map_screen.dart';
 import 'package:faem_delivery/user_information.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'auth_phone_screen.dart';
 
+class TaxiMenu extends StatefulWidget {
 
+  @override
+  _TaxiMenuState createState() => _TaxiMenuState();
+}
 
-class TaxiMenu extends StatelessWidget {
-
+class _TaxiMenuState extends State<TaxiMenu> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -32,8 +33,16 @@ class TaxiMenu extends StatelessWidget {
               margin: EdgeInsets.only(top: 8.0),
               height: MediaQuery.of(context).size.height * 0.1,
               child: IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
+                onPressed: () async {
+                  if (await Internet.checkConnection()) {
+                    Navigator.pop(context);
+                  } else {
+                    setState(() {
+                      isSwitched = false;
+                      Navigator.pop(context);
+                      PopUp.showInternetDialog();
+                    });
+                  }
                 },
                 icon: Icon(Icons.clear),
                 color: Colors.black,
@@ -89,12 +98,20 @@ class TaxiMenu extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     child: FlatButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => UserInformation()),
-                        );
+                      onPressed: () async {
+                        if (await Internet.checkConnection()) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => UserInformation()),
+                          );
+                        } else {
+                          setState(() {
+                            isSwitched = false;
+                            Navigator.pop(context);
+                            PopUp.showInternetDialog();
+                          });
+                        }
                       },
                       child: Container(
                         child: Transform(
@@ -118,12 +135,20 @@ class TaxiMenu extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     child: FlatButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => HistoryList()),
-                        );
+                      onPressed: () async {
+                        if (await Internet.checkConnection()) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => HistoryList()),
+                          );
+                        } else {
+                          setState(() {
+                            isSwitched = false;
+                            Navigator.pop(context);
+                            PopUp.showInternetDialog();
+                          });
+                        }
                       },
                       child: Container(
                         child: Transform(
@@ -147,8 +172,17 @@ class TaxiMenu extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     child: FlatButton(
-                      onPressed: () {
-                        FlutterOpenWhatsapp.sendSingleMessage("+79891359399", "");
+                      onPressed: () async {
+                        if (await Internet.checkConnection()) {
+                          new Timer.periodic(Duration(seconds: 3), (Timer t) async {});
+                          FlutterOpenWhatsapp.sendSingleMessage("+79891359399", "");
+                        } else {
+                          setState(() {
+                            isSwitched = false;
+                            Navigator.pop(context);
+                            PopUp.showInternetDialog();
+                          });
+                        }
                         // Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => MapScreen()), (route) => false);
                       },
                       child: Align(
@@ -164,23 +198,17 @@ class TaxiMenu extends StatelessWidget {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () async {
-                        showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: Text(
-                                'Завершение смены',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                        );
-                        new Timer.periodic(Duration(seconds: 3), (Timer t) async {});
-                        await switchDeliverStatus('offline');
-                        sharedPreferences.clear();
-                        exit(0);
+                        if (await Internet.checkConnection()) {
+                          await switchDeliverStatus('offline');
+                          sharedPreferences.clear();
+                          Navigator.push(context, new MaterialPageRoute(builder: (context) => AuthPhoneScreen()));
+                        } else {
+                          setState(() {
+                            isSwitched = false;
+                            Navigator.pop(context);
+                            PopUp.showInternetDialog();
+                          });
+                        }
                       },
                       child: Align(
                         alignment: Alignment.centerLeft,

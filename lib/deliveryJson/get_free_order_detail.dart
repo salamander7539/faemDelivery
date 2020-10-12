@@ -18,6 +18,7 @@ Future<dynamic> getDetailOrdersData(var uuid) async {
     orderDetail = json.decode(response.body);
     if (orderDetail['order']['products_data'] != null) {
       products = orderDetail['order']['products_data']['products'];
+
     } else {
       products = orderDetail['order']['products_data'];
     }
