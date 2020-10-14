@@ -10,7 +10,6 @@ String newToken, clientCode, newRefToken;
 var updateResponse, updateCode;
 
 Future<dynamic> updateRefreshToken(String refresh) async {
-
   sharedPreferences = await SharedPreferences.getInstance();
   var jsonBody = json.encode({
     "refresh": refresh,

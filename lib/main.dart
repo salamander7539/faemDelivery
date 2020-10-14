@@ -48,8 +48,27 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
   void initState() {
     //WidgetsBinding.instance.addObserver(this);
     super.initState();
+    // getLocation();
     new Timer.periodic(fifteenSeconds, (Timer t) async {
-      getLocation();
+      await getLocation();
+      await getDriverData();
+      await getHistoryData();
+      if (this.mounted) {
+        setState(() {});
+      }
+      if (this.mounted) {
+        if (orders != null) {
+          print('orders: ${orders.length}');
+        } else {
+          print('orders: $orders');
+        }
+      }
+    });
+    new Timer.periodic(oneMinute, (Timer t) async {
+      if (sharedPreferences.get('token') != null) {
+        await updateRefreshToken(sharedPreferences.get('refToken'));
+        await sendLocation();
+      }
     });
   }
 
@@ -110,33 +129,14 @@ class _DeliveryListState extends State<DeliveryList> {
 
   @override
   void initState() {
+    super.initState();
     opacity = 0.5;
     isSwitched = false;
     checkLoginStatus();
     stopwatch.start();
     stopwatch.stop();
     milliseconds = stopwatch.elapsedMicroseconds;
-    new Timer.periodic(fifteenSeconds, (Timer t) async {
-      await getDriverData();
-      await getHistoryData();
-      if (this.mounted) {
-        setState(() {});
-      }
-      if (this.mounted) {
-        if (orders != null) {
-          print('orders: ${orders.length}');
-        } else {
-          print('orders: $orders');
-        }
-      }
-    });
-    new Timer.periodic(oneMinute, (Timer t) async {
-      if (sharedPreferences.get('token') != null) {
-        await sendLocation();
-        await updateRefreshToken(sharedPreferences.get('refToken'));
-      }
-    });
-    super.initState();
+
   }
 
   final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
@@ -443,11 +443,7 @@ class _DeliveryListState extends State<DeliveryList> {
                                                 print("ORDERS: ${orders[index]}");
                                                 if (accessCode == 200) {
                                                   await deliverInitData();
-                                                  Navigator.push(
-                                                      context,
-                                                      new MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              OrderPage()));
+                                                  Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
                                                 } else {
                                                   print(orderDetail['message']);
                                                 }
