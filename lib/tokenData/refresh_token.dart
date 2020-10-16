@@ -20,14 +20,14 @@ Future<dynamic> updateRefreshToken(String refresh) async {
   });
   if (response.statusCode == 200) {
     updateResponse = json.decode(response.body);
-    print(response.body);
+    // print(response.body);
     updateCode = updateResponse['code'];
     newToken = updateResponse['token'];
     await sharedPreferences.setString('token', updateResponse['token']);
     await sharedPreferences.setString('refToken', updateResponse['refresh_token']);
-    print("updateToken: ${sharedPreferences.get('token')}");
+    // print("updateToken: ${sharedPreferences.get('token')}");
     clientCode = updateResponse['client_uuid'];
-    print("newRefToken: ${updateResponse['refresh_token']}");
+    // print("newRefToken: ${updateResponse['refresh_token']}");
   } else {
     updateResponse = json.decode(response.body);
     updateCode = updateResponse['code'];

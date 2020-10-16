@@ -29,8 +29,6 @@ Future<dynamic> loadCode(String deviceId, var code) async {
     token = jsonResponse['token'];
     status = response.statusCode;
     refToken = jsonResponse['refresh_token'];
-    print(response.body);
-    print("refToken: $refToken");
   } else {
     status = response.statusCode;
     print('Request failed with status: ${response.statusCode}.');

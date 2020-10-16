@@ -58,7 +58,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
   getToken() async {
     String token = await _firebaseMessaging.getToken();
     fcmToken = token;
-    print("FCM-token: $fcmToken");
+    // print("FCM-token: $fcmToken");
   }
 
   Future selectNotification(String payload) async {
@@ -80,15 +80,15 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
         onSelectNotification: selectNotification);
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-        print("onMessage: $message");
+        // print("onMessage: $message");
         var notification = message['notification'];
-        print('Notification: ${notification['body']}');
+        // print('Notification: ${notification['body']}');
       },
       onResume: (Map<String, dynamic> message) async {
-        print("onResume: $message");
+        // print("onResume: $message");
       },
       onLaunch: (Map<String, dynamic> message) async {
-        print("onLaunch: $message");
+        // print("onLaunch: $message");
       },
     );
 
@@ -177,7 +177,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                         if (this.mounted) {
                           setState(() {
                             phone = newPhone;
-                            print(phone);
+                            // print(phone);
                             if (phone.length == 16) {
                               buttonPhoneColor = Color(0xFFFD6F6D);
                               buttonPhoneTextColor = Colors.white;
@@ -291,9 +291,9 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                             if (phoneController.text.length == 16) {
                               phone =
                                   "+7${maskTextInputFormatter.getUnmaskedText()}";
-                              print(phone);
+                              // print(phone);
                               deviceId = await DeviceId.getID;
-                              print(deviceId);
+                              // print(deviceId);
                               await loadAuthData(deviceId, phone);
                               if (respCode == 200) {
                                 Navigator.pushNamed(context, "/authCodePage");

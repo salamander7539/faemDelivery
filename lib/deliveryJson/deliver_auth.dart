@@ -24,7 +24,6 @@ Future<AuthData> loadAuthData(String deviceId, String phone) async {
     } else if (respMessage == 'Введите пароль') {
       remindMessage = 'Забыли пароль?';
     }
-    print(response.body);
   } else {
     print('Request failed with status: ${response.statusCode}.');
   }

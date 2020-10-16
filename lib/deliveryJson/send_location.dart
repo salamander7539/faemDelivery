@@ -31,8 +31,6 @@ Future<void> sendLocation() async {
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
-      print("Location: $jsonResponse");
-      print("lat: $lat, lon $lon, mil: ${(DateTime.now().millisecondsSinceEpoch / 1000).round()}");
     } else {
       print('Request failed with status: ${response.statusCode}.');
       print(response.body);

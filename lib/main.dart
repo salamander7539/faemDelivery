@@ -58,9 +58,9 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
       }
       if (this.mounted) {
         if (orders != null) {
-          print('orders: ${orders.length}');
+          // print('orders: ${orders.length}');
         } else {
-          print('orders: $orders');
+          // print('orders: $orders');
         }
       }
     });
@@ -136,14 +136,13 @@ class _DeliveryListState extends State<DeliveryList> {
     stopwatch.start();
     stopwatch.stop();
     milliseconds = stopwatch.elapsedMicroseconds;
-
   }
 
   final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
 
   checkLoginStatus() async {
     sharedPreferences = await SharedPreferences.getInstance();
-    print("token: ${sharedPreferences.getString('token')}");
+    // print("token: ${sharedPreferences.getString('token')}");
     if (sharedPreferences.getString('refToken') == null) {
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
@@ -440,12 +439,12 @@ class _DeliveryListState extends State<DeliveryList> {
                                                     await getDetailOrdersData(
                                                         orders[chosenIndex]
                                                             ['offer']['uuid']);
-                                                print("ORDERS: ${orders[index]}");
+                                                // print("ORDERS: ${orders[index]}");
                                                 if (accessCode == 200) {
                                                   await deliverInitData();
                                                   Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
                                                 } else {
-                                                  print(orderDetail['message']);
+                                                  // print(orderDetail['message']);
                                                 }
                                               } else {
                                                 setState(() {

@@ -20,7 +20,6 @@ class AuthCodeScreen extends StatefulWidget {
 
 final Stopwatch stopwatch = new Stopwatch();
 
-
 Position currentPosition;
 
 String pin;
@@ -29,23 +28,6 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
   TextEditingController pinController = new TextEditingController();
   Color buttonCodeColor, buttonCodeTextColor;
   bool buttonCodeEnable, smsWarning;
-
-  // _getCurrentLocation() {
-  //   geolocator
-  //       .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
-  //       .then((Position position) {
-  //     setState(() {
-  //       currentPosition = position;
-  //     });
-  //     print(
-  //         "lat: ${currentPosition.latitude}, lng: ${currentPosition.longitude}");
-  //
-  //   }).catchError((e) {
-  //     print(e);
-  //   });
-  // }
-  //
-  // final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
 
   @override
   void initState() {
@@ -135,7 +117,7 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                               if (this.mounted) {
                                 setState(() {
                                   pin = newPin;
-                                  print("pin: $pin");
+                                  // print("pin: $pin");
                                   if (pin.length == 4) {
                                     buttonCodeColor = Color(0xFFFD6F6D);
                                     buttonCodeTextColor = Colors.white;
@@ -237,7 +219,7 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                                   sharedPreferences.setString('token', updateResponse['token']);
                                 });
                                 milliseconds = (DateTime.now().millisecondsSinceEpoch / 1000).round();
-                                print("time: $milliseconds ");
+                                // print("time: $milliseconds ");
                                 Navigator.pushNamed(context, "/deliveryPage");
                                 pinController.clear();
                               } else {

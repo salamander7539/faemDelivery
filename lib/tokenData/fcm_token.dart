@@ -19,25 +19,10 @@ Future<void> sendFcm(fcmTok) async {
   if (response.statusCode == 200){
     print("FCM: ${response.body}");
     var jsonResponse = json.decode(response.body);
-    var answer = new GetFcm.fromJson(jsonResponse);
-    fcmCode = answer.code;
-    fcmMessage = answer.message;
+    fcmCode = jsonResponse['code'];
+    fcmMessage = jsonResponse['message'];
   } else {
     print('Request fcm failed with status: ${response.statusCode}.');
     print("FCM: ${response.body}");
-  }
-}
-
-class GetFcm {
-  var code;
-  var message;
-
-  GetFcm({this.code, this.message});
-
-  factory GetFcm.fromJson(Map<String, dynamic> parsedJson) {
-    return GetFcm(
-        code: parsedJson["code"],
-        message: parsedJson["message"]
-    );
   }
 }

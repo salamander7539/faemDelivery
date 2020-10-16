@@ -26,69 +26,15 @@ Future<int> getStatusOrder(
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
     stateOrder = jsonResponse['state'];
-    //print("STATUS: ${response.body}");
   } else if (response.statusCode == 406) {
     var jsonResponse = json.decode(response.body);
     distanceToTarget = jsonResponse['distance_to_target'];
     stateOrder = jsonResponse['state'];
-//    print("confirmDistance: $confirmDistance");
-
     message = jsonResponse['message'];
   } else {
     print('Request update failed with status: ${response.statusCode}.');
     print(response.body);
   }
-  print('update: $body');
-  print('statusCode ${response.statusCode}');
 //  print(response.body);
   return response.statusCode;
-}
-
-OrderState orderStateFromJson(String str) =>
-    OrderState.fromJson(json.decode(str));
-
-String orderStateToJson(OrderState data) => json.encode(data.toJson());
-
-class OrderState {
-  OrderState({
-    this.code,
-    this.message,
-    this.state,
-  });
-
-  final int code;
-  final String message;
-  final StatusState state;
-
-  factory OrderState.fromJson(Map<String, dynamic> json) => OrderState(
-        code: json["code"],
-        message: json["message"],
-        state: StatusState.fromJson(json["state"]),
-      );
-
-  Map<String, dynamic> toJson() => {
-        "code": code,
-        "message": message,
-        "state": state.toJson(),
-      };
-}
-
-class StatusState {
-  StatusState({
-    this.value,
-    this.message,
-  });
-
-  final String value;
-  final String message;
-
-  factory StatusState.fromJson(Map<String, dynamic> json) => StatusState(
-        value: json["value"],
-        message: json["message"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "value": value,
-        "message": message,
-      };
 }

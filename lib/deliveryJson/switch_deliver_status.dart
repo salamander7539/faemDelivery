@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
-import 'deliver_status_data.dart';
 
 var deliverValue;
 
@@ -18,17 +17,14 @@ Future<String> switchDeliverStatus(String statusValue) async {
   });
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
-    var deliverStatusData = new DeliverStatusData.fromJson(jsonResponse);
-    deliverValue = deliverStatusData.driverState.value;
+    deliverValue = jsonResponse['driver_state']['value'];
     if (deliverValue == 'online') {
       if (errorCode == 401) {
         updateRefreshToken(sharedPreferences.get('refToken'));
       }
     }
-    print(response.body);
   } else {
     print('Request failed with status: ${response.statusCode}.');
-    print(response.body);
   }
   return deliverValue;
 }

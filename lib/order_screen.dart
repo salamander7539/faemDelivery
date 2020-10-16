@@ -2054,10 +2054,7 @@ class _OrderPageState extends State<OrderPage> {
                                                 });
                                                 setState(() {
                                                   deliverStatus =
-                                                      initData['order_data']
-                                                                  ['order_data']
-                                                              ['order_state']
-                                                          ['value'];
+                                                      initData['order_data']['order_state']['value'];
                                                   deniedCallVisibility = true;
                                                 });
                                               } else if (statusCode == 406) {
