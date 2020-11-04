@@ -147,7 +147,7 @@ class _DeliveryListState extends State<DeliveryList> {
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
               builder: (BuildContext context) => AuthPhoneScreen()),
-          (route) => false);
+              (route) => false);
     } else if (sharedPreferences.getString('refToken') != null) {
       answer = await updateRefreshToken(sharedPreferences.get('refToken'));
       if (answer == 401) {
@@ -156,7 +156,7 @@ class _DeliveryListState extends State<DeliveryList> {
         Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
                 builder: (BuildContext context) => AuthPhoneScreen()),
-            (route) => false);
+                (route) => false);
       } else {
         await deliverInitData();
         if (initData['order_data'] != null) {
@@ -237,7 +237,7 @@ class _DeliveryListState extends State<DeliveryList> {
         actions: [
           Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
             child: Container(
               child: Switch(
                 value: isSwitched,
@@ -320,7 +320,7 @@ class _DeliveryListState extends State<DeliveryList> {
                                     Container(
                                       child: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: <Widget>[
                                           Padding(
                                             padding: const EdgeInsets.only(
@@ -343,20 +343,20 @@ class _DeliveryListState extends State<DeliveryList> {
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.rectangle,
                                                 borderRadius:
-                                                    BorderRadius.circular(36.0),
+                                                BorderRadius.circular(36.0),
                                                 color: Colors.white,
                                                 border: Border.all(
                                                     color: Color(0xFFFD6F6D)),
                                               ),
                                               child: Padding(
                                                 padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 8.0,
-                                                        horizontal: 20.0),
+                                                const EdgeInsets.symmetric(
+                                                    vertical: 8.0,
+                                                    horizontal: 20.0),
                                                 child: Text(
                                                   (orders[index]['order']
-                                                              ['tariff']
-                                                          ['payment_type'])
+                                                  ['tariff']
+                                                  ['payment_type'])
                                                       .toUpperCase(),
                                                   style: TextStyle(
                                                     fontSize: 11.0,
@@ -390,8 +390,8 @@ class _DeliveryListState extends State<DeliveryList> {
                                           ),
                                           title: Transform(
                                             transform:
-                                                Matrix4.translationValues(
-                                                    -15.0, 0.0, 0.0),
+                                            Matrix4.translationValues(
+                                                -15.0, 0.0, 0.0),
                                             child: Text(
                                               "${orders[index]['order']['routes'][0]['value']}",
                                               style: TextStyle(
@@ -403,8 +403,8 @@ class _DeliveryListState extends State<DeliveryList> {
                                           ),
                                           subtitle: Transform(
                                             transform:
-                                                Matrix4.translationValues(
-                                                    -15.0, 0.0, 0.0),
+                                            Matrix4.translationValues(
+                                                -15.0, 0.0, 0.0),
                                             child: Text(
                                               "${orders[index]['order']['routes'][0]['street']}, ${orders[index]['order']['routes'][0]['house']} • ${(orders[index]['offer']['route_to_client']['properties']['distance'] / 1000).toStringAsFixed(1)}км от вас",
                                               style: TextStyle(
@@ -436,10 +436,9 @@ class _DeliveryListState extends State<DeliveryList> {
                                                   chosenIndex = index;
                                                 });
                                                 var accessCode =
-                                                    await getDetailOrdersData(
-                                                        orders[chosenIndex]
-                                                            ['offer']['uuid']);
-                                                // print("ORDERS: ${orders[index]}");
+                                                await getDetailOrdersData(
+                                                    orders[chosenIndex]
+                                                    ['offer']['uuid']);
                                                 if (accessCode == 200) {
                                                   await deliverInitData();
                                                   Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
@@ -455,7 +454,7 @@ class _DeliveryListState extends State<DeliveryList> {
                                             },
                                             child: Padding(
                                               padding:
-                                                  const EdgeInsets.all(12.0),
+                                              const EdgeInsets.all(12.0),
                                               child: Text(
                                                 "ПРИНЯТЬ ЗАКАЗ",
                                                 style: TextStyle(
