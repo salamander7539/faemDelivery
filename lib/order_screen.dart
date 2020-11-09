@@ -1,5 +1,3 @@
-import 'package:faem_delivery/Internet/internet_connection.dart';
-import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/animations/button_animation.dart';
 import 'package:faem_delivery/deliveryJson/assign_order.dart';
 import 'package:faem_delivery/deliveryJson/call_client.dart';
@@ -13,10 +11,7 @@ import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'deliveryJson/get_orders.dart';
-import 'deliveryJson/send_location.dart';
-import 'deliveryJson/switch_deliver_status.dart';
 import 'main.dart';
 import 'package:map_launcher/map_launcher.dart';
 
@@ -80,23 +75,18 @@ class _OrderPageState extends State<OrderPage> {
             color: Colors.black,
           ),
           onPressed: () async {
-            if (await Internet.checkConnection()) {
-              if (dataUse['offer']['uuid'] != null && orderValue == null || orderValue == 'offer_offered') {
-                await getStatusOrder("offer_rejected", dataUse['offer']['uuid'], null, null);
-                Navigator.pop(context);
-              }
-            } else {
-              setState(() {
-                isSwitched = false;
-                PopUp.showInternetDialog();
-              });
+            if (dataUse['offer']['uuid'] != null && orderValue == null ||
+                orderValue == 'offer_offered') {
+              await getStatusOrder(
+                  "offer_rejected", dataUse['offer']['uuid'], null, null);
+              Navigator.pop(context);
             }
           },
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16.0, vertical: 20.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
             child: Container(
               child: GestureDetector(
                 onTap: () {
@@ -119,8 +109,8 @@ class _OrderPageState extends State<OrderPage> {
       ),
       backgroundColor: Colors.white,
       body: AbsorbPointer(
-        absorbing: !isSwitched,
-        ignoringSemantics: !isSwitched,
+        absorbing: !connectResult,
+        ignoringSemantics: !connectResult,
         child: AnimatedOpacity(
           opacity: opacity,
           duration: Duration(milliseconds: 250),
@@ -138,8 +128,7 @@ class _OrderPageState extends State<OrderPage> {
                           child: Container(
                             width: MediaQuery.of(context).size.width,
                             child: Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.all(14.0),
@@ -157,18 +146,20 @@ class _OrderPageState extends State<OrderPage> {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       shape: BoxShape.rectangle,
-                                      borderRadius:
-                                      BorderRadius.circular(36.0),
+                                      borderRadius: BorderRadius.circular(36.0),
                                       color: Colors.white,
-                                      border: Border.all(
-                                          color: Color(0xFFFD6F6D)),
+                                      border:
+                                          Border.all(color: Color(0xFFFD6F6D)),
                                     ),
                                     child: Padding(
-                                      padding:
-                                      const EdgeInsets.symmetric(
-                                          vertical: 6.0,
-                                          horizontal: 20.0),
-                                      child: Text((dataUse['order']['tariff']['payment_type']).toUpperCase(),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 6.0, horizontal: 20.0),
+                                      child: Text(
+                                        dataUse['order'] != null
+                                            ? (dataUse['order']['tariff']
+                                                    ['payment_type'])
+                                                .toUpperCase()
+                                            : '',
                                         style: TextStyle(
                                           fontSize: 11.0,
                                           color: Color(0xFFFD6F6D),
@@ -195,12 +186,11 @@ class _OrderPageState extends State<OrderPage> {
                               scrollDirection: Axis.horizontal,
                               child: Container(
                                 child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     Padding(
-                                      padding: const EdgeInsets.only(
-                                          right: 8.0),
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
                                       child: Container(
                                         width: 18.0,
                                         height: 19.0,
@@ -211,21 +201,18 @@ class _OrderPageState extends State<OrderPage> {
                                       ),
                                     ),
                                     Container(
-                                      width: MediaQuery.of(context)
-                                          .size
-                                          .width *
+                                      width: MediaQuery.of(context).size.width *
                                           0.8,
                                       child: Column(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            "${dataUse['order']['routes'][0]['value']}",
+                                            "${dataUse['order'] != null ? dataUse['order']['routes'][0]['value'] : ''}",
                                             style: TextStyle(
                                               fontSize: 24.0,
                                               height: 1.0,
-                                              fontWeight:
-                                              FontWeight.bold,
+                                              fontWeight: FontWeight.bold,
                                               fontFamily: "UniNeue",
                                             ),
                                           ),
@@ -239,11 +226,10 @@ class _OrderPageState extends State<OrderPage> {
                           ),
                           subtitle: Container(
                             child: Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "${dataUse['order']['routes'][0]['street']}, ${dataUse['order']['routes'][0]['house']} • ${(dataUse['offer']['route_to_client']['properties']['distance'] / 1000).toStringAsFixed(1)}км от вас",
+                                Text(dataUse['order'] != null ?
+                                  "${dataUse['order']['routes'][0]['street']}, ${dataUse['order']['routes'][0]['house']} • ${(dataUse['offer']['route_to_client']['properties']['distance'] / 1000).toStringAsFixed(1)}км от вас" : '',
                                   style: TextStyle(
                                     color: Colors.black,
                                     fontSize: (16.0),
@@ -255,47 +241,25 @@ class _OrderPageState extends State<OrderPage> {
                                   width: 17.0,
                                   height: 15.0,
                                   child: ConstrainedBox(
-                                    constraints:
-                                    BoxConstraints.expand(),
+                                    constraints: BoxConstraints.expand(),
                                     child: Ink.image(
                                       image: AssetImage(
                                           'images/icons/map_icon.png'),
                                       fit: BoxFit.fill,
                                       child: InkWell(
                                         onTap: () async {
-                                          if (await Internet
-                                              .checkConnection()) {
-                                            final availableMaps =
-                                            await MapLauncher
-                                                .installedMaps;
-                                            print(availableMaps);
-
-                                            await availableMaps.first
-                                                .showMarker(
-                                              coords: Coords(
-                                                  dataUse
-                                                  ['order']
-                                                  ['routes']
-                                                  [0]['lat'],
-                                                  dataUse
-                                                  [
-                                                  'order']
-                                                  ['routes']
-                                                  [0]['lon']),
-                                              title:
-                                              dataUse
-                                              [
-                                              'order']
-                                              ['routes']
-                                              [0]['value'],
-                                            );
-                                          } else {
-                                            setState(() {
-                                              isSwitched = false;
-                                              PopUp
-                                                  .showInternetDialog();
-                                            });
-                                          }
+                                          final availableMaps =
+                                              await MapLauncher.installedMaps;
+                                          print(availableMaps);
+                                          await availableMaps.first.showMarker(
+                                            coords: Coords(
+                                                dataUse['order']['routes'][0]
+                                                    ['lat'],
+                                                dataUse['order']['routes'][0]
+                                                    ['lon']),
+                                            title: dataUse['order']['routes'][0]
+                                                ['value'],
+                                          );
                                         },
                                       ),
                                     ),
@@ -317,38 +281,33 @@ class _OrderPageState extends State<OrderPage> {
                         child: Container(
                           child: ListTile(
                             title: Padding(
-                              padding:
-                              const EdgeInsets.only(top: 8.0),
+                              padding: const EdgeInsets.only(top: 8.0),
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Container(
                                   child: Row(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       Padding(
                                         padding:
-                                        const EdgeInsets.only(
-                                            right: 8.0),
-                                        child: Icon(
-                                            Icons.person_outline),
+                                            const EdgeInsets.only(right: 8.0),
+                                        child: Icon(Icons.person_outline),
                                       ),
                                       Container(
-                                        width: MediaQuery.of(context)
-                                            .size
-                                            .width *
-                                            0.8,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.8,
                                         child: Column(
                                           crossAxisAlignment:
-                                          CrossAxisAlignment
-                                              .start,
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Text((dataUse['order']['routes']).length > 1 ? dataUse['order']['routes'][1]['value'] : "",
+                                            Text(
+                                              (dataUse['order']['routes']).length > 1 && dataUse['order'] != null
+                                                  ? dataUse['order']['routes'][1]['value'] : "",
                                               style: TextStyle(
                                                 fontSize: 24.0,
                                                 height: 1.0,
-                                                fontWeight:
-                                                FontWeight.bold,
+                                                fontWeight: FontWeight.bold,
                                                 fontFamily: "UniNeue",
                                               ),
                                             ),
@@ -364,13 +323,10 @@ class _OrderPageState extends State<OrderPage> {
                               margin: EdgeInsets.only(bottom: 8.0),
                               child: Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    (dataUse['order']
-                                    ['routes'])
-                                        .length >
-                                        1
+                                    (dataUse['order']['routes']).length > 1
                                         ? "${dataUse['order']['routes'][1]['street']}, ${dataUse['order']['routes'][1]['house']} • ${((dataUse['order']['route_way_data']['routes']['properties']['distance']) / 1000).toStringAsFixed(1)}км от вас"
                                         : "",
                                     style: TextStyle(
@@ -384,35 +340,26 @@ class _OrderPageState extends State<OrderPage> {
                                     width: 17.0,
                                     height: 15.0,
                                     child: ConstrainedBox(
-                                      constraints:
-                                      BoxConstraints.expand(),
+                                      constraints: BoxConstraints.expand(),
                                       child: Ink.image(
                                         image: AssetImage(
                                             'images/icons/map_icon.png'),
                                         fit: BoxFit.fill,
                                         child: InkWell(
                                           onTap: () async {
-                                            if (await Internet
-                                                .checkConnection()) {
-                                              final availableMaps =
-                                              await MapLauncher
-                                                  .installedMaps;
-                                              print(availableMaps);
-                                              await availableMaps
-                                                  .first
-                                                  .showMarker(
-                                                coords: Coords(dataUse
-                                                ['order']['routes'][1]['lat'],
-                                                    dataUse['order']['routes'][1]['lon']),
-                                                title:
-                                                dataUse['order']['routes'][1]['value'],
-                                              );
-                                            } else {
-                                              setState(() {
-                                                isSwitched = false;
-                                                PopUp.showInternetDialog();
-                                              });
-                                            }
+                                            final availableMaps =
+                                                await MapLauncher.installedMaps;
+                                            print(availableMaps);
+                                            await availableMaps.first
+                                                .showMarker(
+                                              coords: Coords(
+                                                  dataUse['order']['routes'][1]
+                                                      ['lat'],
+                                                  dataUse['order']['routes'][1]
+                                                      ['lon']),
+                                              title: dataUse['order']['routes']
+                                                  [1]['value'],
+                                            );
                                           },
                                         ),
                                       ),
@@ -430,12 +377,10 @@ class _OrderPageState extends State<OrderPage> {
                           padding: const EdgeInsets.only(top: 16.0),
                           child: Container(
                             child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 16.0),
+                                  padding: const EdgeInsets.only(left: 16.0),
                                   child: Text(
                                     "Номер телефона:",
                                     style: TextStyle(
@@ -446,38 +391,26 @@ class _OrderPageState extends State<OrderPage> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 16.0),
+                                  padding: const EdgeInsets.only(left: 16.0),
                                   child: Container(
                                     child: Row(
                                       mainAxisAlignment:
-                                      MainAxisAlignment
-                                          .spaceBetween,
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           controller.text,
                                           style: TextStyle(
                                             color: Colors.black,
-                                            fontWeight:
-                                            FontWeight.bold,
+                                            fontWeight: FontWeight.bold,
                                             fontSize: 17.0,
                                           ),
                                         ),
                                         Padding(
                                           padding:
-                                          const EdgeInsets.only(
-                                              right: 3.5),
+                                              const EdgeInsets.only(right: 3.5),
                                           child: IconButton(
                                             onPressed: () async {
-                                              if (await Internet
-                                                  .checkConnection()) {
-                                                await callClient();
-                                              } else {
-                                                setState(() {
-                                                  isSwitched = false;
-                                                  PopUp.showInternetDialog();
-                                                });
-                                              }
+                                              await callClient();
                                             },
                                             icon: Icon(Icons.call),
                                           ),
@@ -503,8 +436,7 @@ class _OrderPageState extends State<OrderPage> {
                       Visibility(
                         visible: orderComment != null ? true : false,
                         child: Padding(
-                          padding:
-                          const EdgeInsets.only(bottom: 16.0),
+                          padding: const EdgeInsets.only(bottom: 16.0),
                           child: Container(
                             child: ListTile(
                               title: Text(
@@ -516,9 +448,7 @@ class _OrderPageState extends State<OrderPage> {
                                 ),
                               ),
                               subtitle: Text(
-                                orderComment != null
-                                    ? orderComment
-                                    : "",
+                                orderComment != null ? orderComment : "",
                                 //['order']['client']['comment']
                                 style: TextStyle(
                                   color: Colors.black,
@@ -534,16 +464,13 @@ class _OrderPageState extends State<OrderPage> {
                       Visibility(
                         visible: products != null ? true : false,
                         child: Padding(
-                          padding:
-                          const EdgeInsets.only(bottom: 16.0),
+                          padding: const EdgeInsets.only(bottom: 16.0),
                           child: Container(
                             child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 15.0),
+                                  padding: const EdgeInsets.only(left: 15.0),
                                   child: Text(
                                     "СОСТАВ ЗАКАЗА:",
                                     style: TextStyle(
@@ -559,17 +486,14 @@ class _OrderPageState extends State<OrderPage> {
                                   child: Wrap(
                                     direction: Axis.vertical,
                                     children: List.generate(
-                                      products != null
-                                          ? products.length
-                                          : 0,
-                                          (index) {
+                                      products != null ? products.length : 0,
+                                      (index) {
                                         return Text(
                                           "${dataUse['order']['products_data']['products'][index]['number']} x ${dataUse['order']['products_data']['products'][index]['name']}",
                                           style: TextStyle(
                                             color: Colors.black,
                                             fontSize: 14.0,
-                                            fontWeight:
-                                            FontWeight.bold,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         );
                                       },
@@ -594,18 +518,16 @@ class _OrderPageState extends State<OrderPage> {
                               ),
                             ),
                             subtitle: Row(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              mainAxisAlignment:
-                              MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Container(
-                                  width: MediaQuery.of(context)
-                                      .size
-                                      .width *
-                                      .45,
+                                  width:
+                                      MediaQuery.of(context).size.width * .45,
                                   child: Text(
-                                    dataUse['order']['tariff']['products_price'] == 0
+                                    dataUse['order']['tariff']
+                                                ['products_price'] ==
+                                            0
                                         ? "Взять с клиента: ${dataUse['order']['tariff']['total_price'] - dataUse['order']['tariff']['bonus_payment']}₽\n\n$feature"
                                         : "Сумма выкупа: ${dataUse['order']['tariff']['products_price']}₽\nВзять с клиента: ${dataUse['order']['tariff']['products_price'] + dataUse['order']['tariff']['total_price'] - dataUse['order']['tariff']['bonus_payment']}₽\n\n$feature",
                                     style: TextStyle(
@@ -616,10 +538,7 @@ class _OrderPageState extends State<OrderPage> {
                                   ),
                                 ),
                                 Container(
-                                  width: MediaQuery.of(context)
-                                      .size
-                                      .width *
-                                      .4,
+                                  width: MediaQuery.of(context).size.width * .4,
                                   child: Text(
                                     "Ваш заработок: $guarantPrice₽\n\nПоступят на курьерский баланс: ${dataUse['order']['tariff']['bonus_payment']}₽",
                                     style: TextStyle(
@@ -647,251 +566,255 @@ class _OrderPageState extends State<OrderPage> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Container(
-                        margin: EdgeInsets.only(bottom: 20.0),
+                        margin: EdgeInsets.only(bottom: 15.0),
                         child: SizedBox(
-                          width: MediaQuery.of(context).size.width *
-                              0.95,
-                          child: StatefulBuilder(builder:
-                              (BuildContext context,
+                          width: MediaQuery.of(context).size.width * 0.95,
+                          child: StatefulBuilder(builder: (BuildContext context,
                               StateSetter setButtonState) {
                             return FlatButton(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                    Radius.circular(4.0)),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(4.0)),
                               ),
                               onPressed: () async {
-                                if (await Internet
-                                    .checkConnection()) {
-                                  if (deliverStatus ==
-                                      "order_start" ||
-                                      deliverStatus == 'on_place') {
-                                    statusCode = await getStatusOrder(
-                                        'on_place',
-                                        dataUse
-                                        ['offer']['uuid'],
+                                if (deliverStatus == "order_start" ||
+                                    deliverStatus == 'on_place') {
+                                  statusCode = await getStatusOrder('on_place',
+                                      dataUse['offer']['uuid'], null, 0);
+                                  if (statusCode == 200) {
+                                    await deliverInitData();
+                                    await getStatusOrder('on_the_way',
+                                        dataUse['offer']['uuid'], null, null);
+                                    setState(() async {
+                                      await deliverInitData();
+                                      clientVisibility = true;
+                                      switchToClient = (dataUse['order']
+                                                  ['client']['comment'])
+                                              .contains(new RegExp(
+                                                  r'[A-Za-z0-9а-яА-Я]'))
+                                          ? "Комментарий клиента:"
+                                          : switchToClient;
+                                      orderComment = (dataUse['order']['client']
+                                                  ['comment'])
+                                              .contains(new RegExp(
+                                                  r'[A-Za-z0-9а-яА-Я]'))
+                                          ? dataUse['order']['client']
+                                              ['comment']
+                                          : null;
+                                      buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
+                                    });
+                                  } else if (statusCode == 406) {
+                                    createAlertDialog(context, 'on_place',
+                                        message, "ПРИБЫЛ К КЛИЕНТУ");
+                                    await deliverInitData();
+                                    setState(() async {
+                                      await deliverInitData();
+                                      switchToClient = (dataUse['order']
+                                                  ['client']['comment'])
+                                              .contains(new RegExp(
+                                                  r'[A-Za-z0-9а-яА-Я]'))
+                                          ? "Комментарий клиента:"
+                                          : switchToClient;
+                                      orderComment = (dataUse['order']['client']
+                                                  ['comment'])
+                                              .contains(new RegExp(
+                                                  r'[A-Za-z0-9а-яА-Я]'))
+                                          ? dataUse['order']['client']
+                                              ['comment']
+                                          : null;
+                                      clientVisibility = true;
+                                    });
+                                  }
+                                }
+                                if (deliverStatus == 'on_the_way') {
+                                  statusCode = await getStatusOrder(
+                                      'order_payment',
+                                      dataUse['offer']['uuid'],
+                                      null,
+                                      null);
+                                  if (statusCode == 200) {
+                                    setState(() async {
+                                      buttonStatus = 'ОТДАЛ ЗАКАЗ';
+                                      deniedCallVisibility = true;
+                                    });
+                                    // deliverStatus = dataUse['order_state']['value'];
+                                    await deliverInitData();
+                                  } else if (statusCode == 406) {
+                                    createAlertDialog(context, 'order_payment',
+                                        message, 'ОТДАЛ ЗАКАЗ');
+                                    setState(() async {
+                                      await deliverInitData();
+                                      deniedCallVisibility = true;
+                                    });
+                                  }
+                                }
+                                if (deliverStatus == "order_payment") {
+                                  await getStatusOrder('finished',
+                                      dataUse['offer']['uuid'], null, null);
+                                  print('');
+                                  setState(() {
+                                    deliverStatus = null;
+                                  });
+                                  Navigator.pop(context);
+                                }
+                                if (deliverStatus == null) {
+                                  setState(() {
+                                    phoneVisibility = true;
+                                  });
+                                  await updateRefreshToken(
+                                      sharedPreferences.get('refToken'));
+                                  var assignCode = await assignOrder(
+                                      dataUse['offer']['uuid']);
+                                  if (assignCode == 200) {
+                                    var statusCode = await getStatusOrder(
+                                        'offer_offered',
+                                        dataUse['offer']['uuid'],
                                         null,
-                                        0);
+                                        null);
                                     if (statusCode == 200) {
-                                      await deliverInitData();
-                                      await getStatusOrder(
-                                          'on_the_way',
-                                          dataUse
-                                          ['offer']['uuid'],
-                                          null,
-                                          null);
-                                      setState(() async {
-                                        await deliverInitData();
-                                        clientVisibility = true;
-                                        switchToClient = (dataUse['order']['client']['comment'])
-                                            .contains(new RegExp(
-                                            r'[A-Za-z0-9а-яА-Я]'))
-                                            ? "Комментарий клиента:"
-                                            : switchToClient;
-                                        orderComment = (dataUse['order']['client']['comment'])
-                                            .contains(new RegExp(
-                                            r'[A-Za-z0-9а-яА-Я]'))
-                                            ? dataUse['order']['client']['comment']
-                                            : null;
-                                        buttonStatus =
-                                        'ПРИБЫЛ К КЛИЕНТУ';
-                                      });
-                                    } else if (statusCode == 406) {
-                                      createAlertDialog(context, 'on_place', message, "ПРИБЫЛ К КЛИЕНТУ");
-                                      await deliverInitData();
-                                      setState(() async {
-                                        await deliverInitData();
-                                        switchToClient = (dataUse['order']['client']['comment'])
-                                            .contains(new RegExp(
-                                            r'[A-Za-z0-9а-яА-Я]'))
-                                            ? "Комментарий клиента:"
-                                            : switchToClient;
-                                        orderComment = (dataUse
-                                        ['order']
-                                        ['client']
-                                        ['comment'])
-                                            .contains(new RegExp(
-                                            r'[A-Za-z0-9а-яА-Я]'))
-                                            ? dataUse
-                                        ['order']
-                                        ['client']['comment']
-                                            : null;
-                                        clientVisibility = true;
-                                      });
-                                    }
-                                  }
-                                  if (deliverStatus == 'on_the_way') {
-                                    statusCode = await getStatusOrder('order_payment', dataUse['offer']['uuid'], null, null);
-                                    if (statusCode == 200) {
-                                      setState(() async {
-                                        buttonStatus = 'ОТДАЛ ЗАКАЗ';
-                                        deliverStatus = dataUse['order_state']['value'];
-                                        deniedCallVisibility = true;
-                                      });
-                                      await deliverInitData();
-                                    } else if (statusCode == 406) {
-                                      createAlertDialog(
-                                          context,
-                                          'order_payment',
-                                          message,
-                                          'ОТДАЛ ЗАКАЗ');
-                                      setState(() async {
-                                        await deliverInitData();
-                                        deniedCallVisibility = true;
-                                      });
-                                    }
-                                  }
-                                  if (deliverStatus == "order_payment") {
-                                    await getStatusOrder('finished', dataUse['offer']['uuid'], null, null);
-                                    setState(() {
-                                      deliverStatus = null;
-                                    });
-                                    Navigator.pop(context);
-                                  }
-                                  if (deliverStatus == null) {
-                                    setState(() {
-                                      phoneVisibility = true;
-                                    });
-                                    await updateRefreshToken(
-                                        sharedPreferences
-                                            .get('refToken'));
-                                    var assignCode =
-                                    await assignOrder(
-                                        dataUse
-                                        ['offer']['uuid']);
-                                    if (assignCode == 200) {
-                                      var statusCode =
-                                      await getStatusOrder(
-                                          'offer_offered',
-                                          dataUse
-                                          ['offer']['uuid'],
-                                          null,
-                                          null);
-                                      if (statusCode == 200) {
-                                        var initCode =
-                                        await deliverInitData();
-                                        if (initCode == 200) {
-                                          int currentTimeUnix = (DateTime.now().millisecondsSinceEpoch /
-                                              1000)
-                                              .round();
-                                          arrivalTime =
-                                              ((arrivalTimeToFirstPoint +
-                                                  currentTimeUnix))
-                                                  .round();
-                                          buttonIndex = 2;
-                                          return showModalBottomSheet(
-                                              context: context,
-                                              backgroundColor:
-                                              Colors.white,
-                                              builder: (context) {
-                                                return StatefulBuilder(
-                                                    builder: (BuildContext
-                                                    context,
-                                                        StateSetter
-                                                        setModalState) {
-                                                      return Padding(
-                                                        padding:
-                                                        const EdgeInsets
-                                                            .only(
-                                                            top: 8.0),
-                                                        child: Container(
-                                                          height: MediaQuery.of(
-                                                              context)
-                                                              .size
-                                                              .height *
-                                                              .275,
-                                                          child:
-                                                          Visibility(
-                                                            child: Column(
-                                                              children: [
-                                                                Padding(
-                                                                  padding:
-                                                                  const EdgeInsets.all(8.0),
+                                      var initCode = await deliverInitData();
+                                      if (initCode == 200) {
+                                        int currentTimeUnix = (DateTime.now()
+                                                    .millisecondsSinceEpoch /
+                                                1000)
+                                            .round();
+                                        arrivalTime =
+                                            ((arrivalTimeToFirstPoint +
+                                                    currentTimeUnix))
+                                                .round();
+                                        buttonIndex = 2;
+                                        return showModalBottomSheet(
+                                            context: context,
+                                            backgroundColor: Colors.white,
+                                            builder: (context) {
+                                              return StatefulBuilder(builder:
+                                                  (BuildContext context,
+                                                      StateSetter
+                                                          setModalState) {
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 8.0),
+                                                  child: Container(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            .275,
+                                                    child: Visibility(
+                                                      child: Column(
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Wrap(
+                                                              direction: Axis
+                                                                  .horizontal,
+                                                              children:
+                                                                  List.generate(
+                                                                      5,
+                                                                      (index) {
+                                                                return Container(
+                                                                  width: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      .16,
+                                                                  height: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      .16,
+                                                                  margin: EdgeInsets
+                                                                      .symmetric(
+                                                                          horizontal:
+                                                                              4.0),
                                                                   child:
-                                                                  Wrap(
-                                                                    direction:
-                                                                    Axis.horizontal,
-                                                                    children: List.generate(
-                                                                        5,
-                                                                            (index) {
-                                                                          return Container(
-                                                                            width: MediaQuery.of(context).size.width * .16,
-                                                                            height: MediaQuery.of(context).size.width * .16,
-                                                                            margin: EdgeInsets.symmetric(horizontal: 4.0),
-                                                                            child: FlatButton(
-                                                                              shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                                                                              ),
-                                                                              onPressed: () async {
-                                                                                if (await Internet.checkConnection()) {
-                                                                                  setModalState(() {
-                                                                                    arrivalTime = ((arrivalTimeToFirstPoint * coef[index] + currentTimeUnix)).round();
-                                                                                    buttonIndex = index;
-                                                                                    print("B $buttonIndex");
-                                                                                  });
-                                                                                  print("arrivalTime $arrivalTime");
-                                                                                } else {
-                                                                                  setState(() {
-                                                                                    isSwitched = false;
-                                                                                    PopUp.showInternetDialog();
-                                                                                  });
-                                                                                }
-                                                                              },
-                                                                              child: Text(
-                                                                                "${((arrivalTimeToFirstPoint * coef[index]) / 60).round()}",
-                                                                                style: TextStyle(
-                                                                                  color: buttonIndex != index ? Colors.black : Color(0xFFFD6F6D),
-                                                                                  fontWeight: FontWeight.bold,
-                                                                                  fontSize: fondTimeSize,
-                                                                                ),
-                                                                              ),
-                                                                              color: Color(0xFFEEEEEE),
-                                                                            ),
-                                                                          );
-                                                                        }),
+                                                                      FlatButton(
+                                                                    shape:
+                                                                        RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.all(
+                                                                              Radius.circular(4.0)),
+                                                                    ),
+                                                                    onPressed:
+                                                                        () async {
+                                                                      setModalState(
+                                                                          () {
+                                                                        arrivalTime =
+                                                                            ((arrivalTimeToFirstPoint * coef[index] + currentTimeUnix)).round();
+                                                                        buttonIndex =
+                                                                            index;
+                                                                        print(
+                                                                            "B $buttonIndex");
+                                                                      });
+                                                                      print(
+                                                                          "arrivalTime $arrivalTime");
+                                                                    },
+                                                                    child: Text(
+                                                                      "${((arrivalTimeToFirstPoint * coef[index]) / 60).round()}",
+                                                                      style:
+                                                                          TextStyle(
+                                                                        color: buttonIndex !=
+                                                                                index
+                                                                            ? Colors.black
+                                                                            : Color(0xFFFD6F6D),
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        fontSize:
+                                                                            fondTimeSize,
+                                                                      ),
+                                                                    ),
+                                                                    color: Color(
+                                                                        0xFFEEEEEE),
                                                                   ),
-                                                                ),
-                                                                Padding(
-                                                                  padding: const EdgeInsets.only(
-                                                                      left: 24.0,
-                                                                      right: 24.0,
-                                                                      top: 16.0),
-                                                                  child:
-                                                                  Container(
-                                                                    child: ButtonAnimation(
-                                                                        primaryColor: Color(0xFFFD6F6D),
-                                                                        darkPrimaryColor: Color(0xFF33353E),
-                                                                        orderFunction: onStartOrder),
-                                                                  ),
-                                                                ),
-                                                                Padding(
-                                                                  padding:
-                                                                  const EdgeInsets.only(
-                                                                    top: 8.0,
-                                                                    left: 24.0,
-                                                                    right: 24.0,
-                                                                  ),
-                                                                  child:
-                                                                  Container(
-                                                                    child:
-                                                                    Text("Пожалуйста, укажите максимально точное время прибытия к клиенту"),
-                                                                  ),
-                                                                ),
-                                                              ],
+                                                                );
+                                                              }),
                                                             ),
                                                           ),
-                                                        ),
-                                                      );
-                                                    });
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                        .only(
+                                                                    left: 24.0,
+                                                                    right: 24.0,
+                                                                    top: 16.0),
+                                                            child: Container(
+                                                              child: ButtonAnimation(
+                                                                  primaryColor:
+                                                                      Color(
+                                                                          0xFFFD6F6D),
+                                                                  darkPrimaryColor:
+                                                                      Color(
+                                                                          0xFF33353E),
+                                                                  orderFunction:
+                                                                      onStartOrder),
+                                                            ),
+                                                          ),
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .only(
+                                                              top: 8.0,
+                                                              left: 24.0,
+                                                              right: 24.0,
+                                                            ),
+                                                            child: Container(
+                                                              child: Text(
+                                                                  "Пожалуйста, укажите максимально точное время прибытия к клиенту"),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
                                               });
-                                        }
+                                            });
                                       }
                                     }
                                   }
-                                } else {
-                                  setState(() {
-                                    isSwitched = false;
-                                    PopUp.showInternetDialog();
-                                  });
                                 }
                               },
                               color: Color(0xFFFD6F6D),
@@ -912,23 +835,13 @@ class _OrderPageState extends State<OrderPage> {
                       Visibility(
                         visible: deniedCallVisibility,
                         child: Container(
-                          margin: EdgeInsets.only(bottom: 25.0),
+                          margin: EdgeInsets.only(bottom: 10.0),
                           child: SizedBox(
-                            width: MediaQuery.of(context).size.width *
-                                0.95,
+                            width: MediaQuery.of(context).size.width * 0.95,
                             child: FlatButton(
                               onPressed: () async {
-                                if (await Internet
-                                    .checkConnection()) {
-                                  FlutterOpenWhatsapp
-                                      .sendSingleMessage(
-                                      "+79891359399", "");
-                                } else {
-                                  setState(() {
-                                    isSwitched = false;
-                                    PopUp.showInternetDialog();
-                                  });
-                                }
+                                FlutterOpenWhatsapp.sendSingleMessage(
+                                    "+79891359399", "");
                               },
                               color: Colors.white,
                               child: Text(
@@ -1008,36 +921,32 @@ class _OrderPageState extends State<OrderPage> {
         actions: [
           FlatButton(
             onPressed: () async {
-              if (await Internet.checkConnection()) {
-                if (initData['order_data'] == null) {
-                  alertData = orderDetail;
-                } else {
-                  alertData = initData['order_data'];
-                }
-                var answer = await getStatusOrder(status, alertData['offer']['uuid'], null, distance);
-                if (answer == 200) {
-                  await deliverInitData();
-                  if (deliverStatus == "on_place") {
-                    await getStatusOrder('on_the_way', alertData['offer']['uuid'], null, distance);
-                    await deliverInitData();
-                    setState(() {
-                      buttonStatus = buttonState;
-                    });
-                  } else {
-                    print("buttonState $buttonState");
-                    await getStatusOrder('order_payment', alertData['offer']['uuid'], null, distance);
-                    await deliverInitData();
-                    setState(() {
-                      buttonStatus = buttonState;
-                    });
-                  }
-                  Navigator.pop(context);
-                }
+              if (initData['order_data'] == null) {
+                alertData = orderDetail;
               } else {
-                setState(() {
-                  isSwitched = false;
-                  PopUp.showInternetDialog();
-                });
+                alertData = initData['order_data'];
+              }
+              var answer = await getStatusOrder(
+                  status, alertData['offer']['uuid'], null, distance);
+              if (answer == 200) {
+                await deliverInitData();
+                if (deliverStatus == "on_place") {
+                  await getStatusOrder(
+                      'on_the_way', alertData['offer']['uuid'], null, distance);
+                  await deliverInitData();
+                  setState(() {
+                    buttonStatus = buttonState;
+                  });
+                } else {
+                  print("buttonState $buttonState");
+                  await getStatusOrder('order_payment',
+                      alertData['offer']['uuid'], null, distance);
+                  await deliverInitData();
+                  setState(() {
+                    buttonStatus = buttonState;
+                  });
+                }
+                Navigator.pop(context);
               }
             },
             child: Text(
@@ -1072,9 +981,8 @@ class _OrderPageState extends State<OrderPage> {
   String formattedDate = DateFormat('ddMMyy').format(DateTime.now());
   bool _switchValue;
 
-
   getInitData(dataUse) {
-    print('ORDER STATUS: ${deliverStatus}');
+    print('ORDER STATUS: $deliverStatus');
     String orderId = dataUse['order']['uuid'];
     currentId = orderId.substring(orderId.length - 4);
     print(currentId);
@@ -1082,28 +990,24 @@ class _OrderPageState extends State<OrderPage> {
       deliverStatus = dataUse['order_state']['value'];
     }
     if (dataUse['order']['tariff']['total_price'] <
-        dataUse['order']['tariff']
-        ['guaranteed_driver_income']) {
-      guarantPrice = dataUse['order']['tariff']
-      ['guaranteed_driver_income'];
+        dataUse['order']['tariff']['guaranteed_driver_income']) {
+      guarantPrice = dataUse['order']['tariff']['guaranteed_driver_income'];
     } else {
       guarantPrice = dataUse['order']['tariff']['total_price'];
     }
     clientVisibility = false;
     phoneVisibility = true;
     buttonIndex = 2;
-    if (dataUse['order']['routes'][0]['category'] ==
-        'Рестораны') {
+    if (dataUse['order']['routes'][0]['category'] == 'Рестораны') {
       category = 'ресторана';
-    } else if (dataUse['order']['routes'][0]['category'] ==
-        'Аптеки') {
+    } else if (dataUse['order']['routes'][0]['category'] == 'Аптеки') {
       category = 'аптеки';
-    } else if (dataUse['order']['routes'][0]['category'] ==
-        'Магазины') {
+    } else if (dataUse['order']['routes'][0]['category'] == 'Магазины') {
       category = 'магазина';
     } else {
       category = 'заведения';
     }
+    print("ORDER: ${(dataUse['order'])}");
     print("features: ${(dataUse['order']['features'])}");
     if ((dataUse['order']['features']) == null ||
         (dataUse['order']['features']).isEmpty) {
@@ -1115,43 +1019,41 @@ class _OrderPageState extends State<OrderPage> {
       case 'order_start':
         switchToClient = 'Комментрарий ресторана';
         orderComment = (dataUse['order']['comment'])
-            .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
             ? dataUse['order']['comment']
             : null;
         buttonStatus = 'ПРИБЫЛ К ЗАВЕДЕНИЮ';
         break;
       case 'on_place':
-        switchToClient = (dataUse['order']['client']
-        ['comment'])
-            .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+        switchToClient = (dataUse['order']['client']['comment'])
+                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
             ? "Комментарий клиента:"
             : switchToClient;
         orderComment = (dataUse['order']['client']['comment'])
-            .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
             ? dataUse['order']['client']['comment']
             : null;
         buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
         clientVisibility = true;
         break;
       case 'on_the_way':
-        switchToClient = (dataUse['order']['client']
-        ['comment'])
-            .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+        switchToClient = (dataUse['order']['client']['comment'])
+                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
             ? "Комментарий клиента:"
             : switchToClient;
         orderComment = (dataUse['order']['client']['comment'])
-            .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
             ? dataUse['order']['client']['comment']
             : null;
         buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
         break;
       case 'order_payment':
         switchToClient = (dataUse['order']['client']['comment'])
-            .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
             ? "Комментарий клиента:"
             : switchToClient;
         orderComment = (dataUse['order']['client']['comment'])
-            .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
             ? dataUse['order']['client']['comment']
             : null;
         buttonStatus = 'ОТДАЛ ЗАКАЗ';
@@ -1162,14 +1064,11 @@ class _OrderPageState extends State<OrderPage> {
       default:
         switchToClient = 'Комментрарий ресторана';
         orderComment = (dataUse['order']['comment'])
-            .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
             ? dataUse['order']['comment']
             : null;
         buttonStatus = "ПРИНЯТЬ ЗАКАЗ";
         break;
-    }
-    if (isSwitched = true) {
-      opacity = 1;
     }
   }
 
@@ -1189,7 +1088,6 @@ class _OrderPageState extends State<OrderPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return WillPopScope(
       onWillPop: () async {
         if (orderDetail['offer']['uuid'] != null) {
@@ -1200,17 +1098,35 @@ class _OrderPageState extends State<OrderPage> {
         return null;
       },
       child: FutureBuilder(
-          future: initData['order_data'] == null
-              ? getDetailOrdersData(orders[chosenIndex]['offer']['uuid'])
-              : deliverInitData(),
-          // ignore: missing_return
-          builder: (context, AsyncSnapshot snapshot) {
-            if (initData['order_data'] == null) {
-              return getData(orderDetail);
-            } else {
+          future: deliverInitData(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (initData['order_data'] == null && snapshot.hasData) {
+              if (orders != null) {
+                return getData(orderDetail);
+              } else {
+                return Scaffold(
+                  body: Container(
+                    color: Colors.white,
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                );
+              }
+            } else if (snapshot.hasData && initData['order_data'] != null) {
               return getData(initData['order_data']);
+            } else {
+              return Scaffold(
+                body: Container(
+                  color: Colors.white,
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              );
             }
-          }),
+          },
+      ),
     );
   }
 }

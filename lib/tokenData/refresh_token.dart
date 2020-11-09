@@ -1,5 +1,4 @@
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';

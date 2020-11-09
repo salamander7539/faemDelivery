@@ -1,11 +1,9 @@
-import 'package:faem_delivery/Internet/internet_connection.dart';
 import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/deliveryJson/get_history_data.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
 
 import 'deliveryJson/deliver_verification.dart';
-import 'deliveryJson/get_free_order_detail.dart';
 import 'deliveryJson/switch_deliver_status.dart';
 import 'main.dart';
 import 'package:intl/intl.dart';
@@ -64,12 +62,12 @@ class _HistoryListState extends State<HistoryList> {
               child: Switch(
                 value: isSwitched,
                 onChanged: (value) async {
-                  if (await Internet.checkConnection()) {
+
                     if (this.mounted) {
                       setState(() {
                         isSwitched = value;
                       });
-                    }
+
                     if (isSwitched) {
                       await updateRefreshToken(sharedPreferences.get('refToken'));
                       await switchDeliverStatus("online");

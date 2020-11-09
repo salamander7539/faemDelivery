@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:faem_delivery/Internet/internet_connection.dart';
 import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
@@ -34,15 +33,7 @@ class _TaxiMenuState extends State<TaxiMenu> {
               height: MediaQuery.of(context).size.height * 0.1,
               child: IconButton(
                 onPressed: () async {
-                  if (await Internet.checkConnection()) {
                     Navigator.pop(context);
-                  } else {
-                    setState(() {
-                      isSwitched = false;
-                      Navigator.pop(context);
-                      PopUp.showInternetDialog();
-                    });
-                  }
                 },
                 icon: Icon(Icons.clear),
                 color: Colors.black,
@@ -99,19 +90,11 @@ class _TaxiMenuState extends State<TaxiMenu> {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () async {
-                        if (await Internet.checkConnection()) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => UserInformation()),
                           );
-                        } else {
-                          setState(() {
-                            isSwitched = false;
-                            Navigator.pop(context);
-                            PopUp.showInternetDialog();
-                          });
-                        }
                       },
                       child: Container(
                         child: Transform(
@@ -136,19 +119,11 @@ class _TaxiMenuState extends State<TaxiMenu> {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () async {
-                        if (await Internet.checkConnection()) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => HistoryList()),
                           );
-                        } else {
-                          setState(() {
-                            isSwitched = false;
-                            Navigator.pop(context);
-                            PopUp.showInternetDialog();
-                          });
-                        }
                       },
                       child: Container(
                         child: Transform(
@@ -173,17 +148,8 @@ class _TaxiMenuState extends State<TaxiMenu> {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () async {
-                        if (await Internet.checkConnection()) {
                           new Timer.periodic(Duration(seconds: 3), (Timer t) async {});
                           FlutterOpenWhatsapp.sendSingleMessage("+79891359399", "");
-                        } else {
-                          setState(() {
-                            isSwitched = false;
-                            Navigator.pop(context);
-                            PopUp.showInternetDialog();
-                          });
-                        }
-                        // Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => MapScreen()), (route) => false);
                       },
                       child: Align(
                         alignment: Alignment.centerLeft,
@@ -198,17 +164,9 @@ class _TaxiMenuState extends State<TaxiMenu> {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () async {
-                        if (await Internet.checkConnection()) {
                           await switchDeliverStatus('offline');
                           sharedPreferences.clear();
                           Navigator.push(context, new MaterialPageRoute(builder: (context) => AuthPhoneScreen()));
-                        } else {
-                          setState(() {
-                            isSwitched = false;
-                            Navigator.pop(context);
-                            PopUp.showInternetDialog();
-                          });
-                        }
                       },
                       child: Align(
                         alignment: Alignment.centerLeft,

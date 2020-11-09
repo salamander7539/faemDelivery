@@ -54,7 +54,7 @@ dependencies:
   progress_button: ^0.0.2
   time_formatter: ^1.0.0
   url_launcher: ^5.5.0
-  connectivity: ^0.4.9+2
+  connectivity: ^2.0.1
   fluttertoast: ^7.1.1
   flutter_progress_button: ^0.6.4
   flutter_secure_storage: ^3.3.3
@@ -78,7 +78,7 @@ dev_dependencies:
 
 dependency_overrides:
   flutter_offline: 0.3.0
-  connectivity: ^0.4.9+2
+  connectivity: ^2.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,6 +1,7 @@
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_orders.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -18,6 +19,7 @@ Future<String> switchDeliverStatus(String statusValue) async {
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
     deliverValue = jsonResponse['driver_state']['value'];
+    print("deliverStatus: $deliverValue");
     if (deliverValue == 'online') {
       if (errorCode == 401) {
         updateRefreshToken(sharedPreferences.get('refToken'));

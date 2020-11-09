@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:faem_delivery/Internet/internet_connection.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/auth_code_screen.dart';
 import 'package:faem_delivery/auth_phone_screen.dart';
@@ -40,15 +40,34 @@ var lon;
 final birthday = DateTime(1967, 10, 12);
 final date2 = DateTime.now();
 final difference = date2.difference(birthday).inSeconds;
+var connectResult;
 
 class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
   Timer timer;
+  var connectivity;
+  StreamSubscription<ConnectivityResult> subscription;
 
   @override
   void initState() {
     //WidgetsBinding.instance.addObserver(this);
     super.initState();
     // getLocation();
+    connectivity = new Connectivity();
+    subscription = connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+      print(result);
+      if (result == ConnectivityResult.wifi || result == ConnectivityResult.mobile)  {
+        getOrdersData();
+        setState(() {
+          connectResult = true;
+          opacity = 1.0;
+        });
+      } else {
+        setState(() {
+          connectResult = false;
+        });
+        PopUp.showInternetDialog();
+      }
+    });
     new Timer.periodic(fifteenSeconds, (Timer t) async {
       await getLocation();
       await getDriverData();
@@ -84,14 +103,10 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    //WidgetsBinding.instance.removeObserver(this);
+    subscription.cancel();
     super.dispose();
   }
 
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state) {
-  //   print('state = $state');
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +145,6 @@ class _DeliveryListState extends State<DeliveryList> {
   @override
   void initState() {
     super.initState();
-    opacity = 0.5;
     isSwitched = false;
     checkLoginStatus();
     stopwatch.start();
@@ -162,22 +176,11 @@ class _DeliveryListState extends State<DeliveryList> {
         if (initData['order_data'] != null) {
           isSwitched = true;
           opacity = 1;
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (BuildContext context) => OrderPage()));
+          Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => OrderPage()));
         }
       }
     }
   }
-
-  // _checkInternetConnectivity() async {
-  //   var result = await Connectivity().checkConnectivity();
-  //   if (result == ConnectivityResult.none) {
-  //     _showDialog('No internet', "You're not connected to a network");
-  //   } else if (result == ConnectivityResult.mobile) {
-  //   } else if (result == ConnectivityResult.wifi) {}
-  // }
 
   _showDialog(text) {
     Fluttertoast.showToast(
@@ -210,15 +213,8 @@ class _DeliveryListState extends State<DeliveryList> {
               color: Colors.black,
             ),
             onPressed: () async {
-              if (await Internet.checkConnection()) {
                 await getHistoryData();
                 Scaffold.of(context).openDrawer();
-              } else {
-                setState(() {
-                  isSwitched = false;
-                  PopUp.showInternetDialog();
-                });
-              }
             },
           );
         }),
@@ -242,12 +238,10 @@ class _DeliveryListState extends State<DeliveryList> {
               child: Switch(
                 value: isSwitched,
                 onChanged: (value) async {
-                  if (await Internet.checkConnection()) {
                     if (this.mounted) {
                       setState(() {
                         isSwitched = value;
                       });
-                    }
                     if (isSwitched) {
                       await sendLocation();
                       await switchDeliverStatus("online");
@@ -286,236 +280,256 @@ class _DeliveryListState extends State<DeliveryList> {
         future: getOrdersData(),
         // ignore: missing_return
         builder: (context, AsyncSnapshot snapshot) {
-          if (isSwitched && snapshot.hasData) {
-            return ListView.builder(
-                itemCount: orders == null ? 0 : orders.length,
-                itemBuilder: (context, index) {
-                  if (orders[index]['order']['routes'][0]['category'] ==
-                      'Рестораны') {
-                    category = 'ресторана';
-                  } else if (orders[index]['order']['routes'][0]['category'] ==
-                      'Аптеки') {
-                    category = 'аптеки';
-                  } else if (orders[index]['order']['routes'][0]['category'] ==
-                      'Магазины') {
-                    category = 'магазина';
-                  } else {
-                    category = 'заведения';
-                  }
-                  return Container(
-                    margin: EdgeInsets.only(top: 10.0),
-                    child: Column(
-                      children: <Widget>[
-                        Center(
-                          child: SizedBox(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8.0,
-                                horizontal: 16.0,
-                              ),
-                              child: Container(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Container(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                        children: <Widget>[
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                top: 18.0,
-                                                bottom: 12.0,
-                                                left: 16.0),
-                                            child: Text(
-                                              "Доставка из $category",
-                                              style: TextStyle(
-                                                fontSize: 16.0,
-                                                color: Color(0xFFFD6F6D),
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: "UniNeue",
-                                              ),
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(16.0),
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.rectangle,
-                                                borderRadius:
-                                                BorderRadius.circular(36.0),
-                                                color: Colors.white,
-                                                border: Border.all(
-                                                    color: Color(0xFFFD6F6D)),
-                                              ),
-                                              child: Padding(
-                                                padding:
-                                                const EdgeInsets.symmetric(
-                                                    vertical: 8.0,
-                                                    horizontal: 20.0),
-                                                child: Text(
-                                                  (orders[index]['order']
-                                                  ['tariff']
-                                                  ['payment_type'])
-                                                      .toUpperCase(),
-                                                  style: TextStyle(
-                                                    fontSize: 11.0,
-                                                    color: Color(0xFFFD6F6D),
-                                                    fontWeight: FontWeight.bold,
-                                                    fontFamily: "UniNeue",
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Divider(color: Color(0xFFECEEEC)),
-                                    Container(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 16.0,
-                                            bottom: 12.0,
-                                            left: 16.0,
-                                            right: 16.0),
-                                        child: ListTile(
-                                          leading: Container(
-                                            width: 18.0,
-                                            height: 19.0,
-                                            child: Image.asset(
-                                              "images/icons/restaurant_icon.png",
-                                              fit: BoxFit.fill,
-                                            ),
-                                          ),
-                                          title: Transform(
-                                            transform:
-                                            Matrix4.translationValues(
-                                                -15.0, 0.0, 0.0),
-                                            child: Text(
-                                              "${orders[index]['order']['routes'][0]['value']}",
-                                              style: TextStyle(
-                                                fontSize: 24.0,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: "UniNeue",
-                                              ),
-                                            ),
-                                          ),
-                                          subtitle: Transform(
-                                            transform:
-                                            Matrix4.translationValues(
-                                                -15.0, 0.0, 0.0),
-                                            child: Text(
-                                              "${orders[index]['order']['routes'][0]['street']}, ${orders[index]['order']['routes'][0]['house']} • ${(orders[index]['offer']['route_to_client']['properties']['distance'] / 1000).toStringAsFixed(1)}км от вас",
-                                              style: TextStyle(
-                                                color: Color(0xFF878A87),
-                                                fontSize: (16.0),
-                                                fontFamily: 'UniNeue',
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                            bottom: 16.0,
-                                            left: 16.0,
-                                            right: 16.0),
-                                        child: SizedBox(
-                                          width: double.infinity,
-                                          child: FlatButton(
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(4.0)),
-                                            ),
-                                            onPressed: () async {
-                                              if (await Internet.checkConnection()) {
-                                                setState(() {
-                                                  chosenIndex = index;
-                                                });
-                                                var accessCode =
-                                                await getDetailOrdersData(
-                                                    orders[chosenIndex]
-                                                    ['offer']['uuid']);
-                                                if (accessCode == 200) {
-                                                  await deliverInitData();
-                                                  Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
-                                                } else {
-                                                  // print(orderDetail['message']);
-                                                }
-                                              } else {
-                                                setState(() {
-                                                  isSwitched = false;
-                                                  PopUp.showInternetDialog();
-                                                });
-                                              }
-                                            },
-                                            child: Padding(
-                                              padding:
-                                              const EdgeInsets.all(12.0),
+          if (connectResult == true) {
+            if (isSwitched && snapshot.hasData) {
+              return ListView.builder(
+                  itemCount: orders == null ? 0 : orders.length,
+                  itemBuilder: (context, index) {
+                    if (orders[index]['order']['routes'][0]['category'] ==
+                        'Рестораны') {
+                      category = 'ресторана';
+                    } else if (orders[index]['order']['routes'][0]['category'] ==
+                        'Аптеки') {
+                      category = 'аптеки';
+                    } else if (orders[index]['order']['routes'][0]['category'] ==
+                        'Магазины') {
+                      category = 'магазина';
+                    } else {
+                      category = 'заведения';
+                    }
+                    return Container(
+                      margin: EdgeInsets.only(top: 10.0),
+                      child: Column(
+                        children: <Widget>[
+                          Center(
+                            child: SizedBox(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                  horizontal: 16.0,
+                                ),
+                                child: Container(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Container(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 18.0,
+                                                  bottom: 12.0,
+                                                  left: 16.0),
                                               child: Text(
-                                                "ПРИНЯТЬ ЗАКАЗ",
+                                                "Доставка из $category",
                                                 style: TextStyle(
-                                                  fontSize: 14.0,
-                                                  color: Colors.white,
+                                                  fontSize: 16.0,
+                                                  color: Color(0xFFFD6F6D),
                                                   fontWeight: FontWeight.bold,
                                                   fontFamily: "UniNeue",
                                                 ),
                                               ),
                                             ),
-                                            color: Color(0xFFFD6F6D),
+                                            Padding(
+                                              padding: const EdgeInsets.all(16.0),
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.rectangle,
+                                                  borderRadius:
+                                                  BorderRadius.circular(36.0),
+                                                  color: Colors.white,
+                                                  border: Border.all(
+                                                      color: Color(0xFFFD6F6D)),
+                                                ),
+                                                child: Padding(
+                                                  padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 8.0,
+                                                      horizontal: 20.0),
+                                                  child: Text(
+                                                    (orders[index]['order']
+                                                    ['tariff']
+                                                    ['payment_type'])
+                                                        .toUpperCase(),
+                                                    style: TextStyle(
+                                                      fontSize: 11.0,
+                                                      color: Color(0xFFFD6F6D),
+                                                      fontWeight: FontWeight.bold,
+                                                      fontFamily: "UniNeue",
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Divider(color: Color(0xFFECEEEC)),
+                                      Container(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 16.0,
+                                              bottom: 12.0,
+                                              left: 16.0,
+                                              right: 16.0),
+                                          child: ListTile(
+                                            leading: Container(
+                                              width: 18.0,
+                                              height: 19.0,
+                                              child: Image.asset(
+                                                "images/icons/restaurant_icon.png",
+                                                fit: BoxFit.fill,
+                                              ),
+                                            ),
+                                            title: Transform(
+                                              transform:
+                                              Matrix4.translationValues(
+                                                  -15.0, 0.0, 0.0),
+                                              child: Text(
+                                                "${orders[index]['order']['routes'][0]['value']}",
+                                                style: TextStyle(
+                                                  fontSize: 24.0,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: "UniNeue",
+                                                ),
+                                              ),
+                                            ),
+                                            subtitle: Transform(
+                                              transform:
+                                              Matrix4.translationValues(
+                                                  -15.0, 0.0, 0.0),
+                                              child: Text(
+                                                "${orders[index]['order']['routes'][0]['street']}, ${orders[index]['order']['routes'][0]['house']} • ${(orders[index]['offer']['route_to_client']['properties']['distance'] / 1000).toStringAsFixed(1)}км от вас",
+                                                style: TextStyle(
+                                                  color: Color(0xFF878A87),
+                                                  fontSize: (16.0),
+                                                  fontFamily: 'UniNeue',
+                                                ),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.rectangle,
-                                  borderRadius: BorderRadius.circular(4.0),
-                                  color: Color(0xFFFFFFFF),
-                                  border: Border.all(
-                                      color: Color(0xFFECEEEC), width: 1.0),
+                                      Container(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 16.0,
+                                              left: 16.0,
+                                              right: 16.0),
+                                          child: SizedBox(
+                                            width: double.infinity,
+                                            child: FlatButton(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(4.0)),
+                                              ),
+                                              onPressed: () async {
+                                                  setState(() {
+                                                    chosenIndex = index;
+                                                  });
+                                                  var accessCode =
+                                                  await getDetailOrdersData(orders[chosenIndex]['offer']['uuid']);
+                                                  if (accessCode == 200) {
+                                                    await deliverInitData();
+                                                    Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
+                                                  } else {
+                                                    // print(orderDetail['message']);
+                                                  }
+                                              },
+                                              child: Padding(
+                                                padding:
+                                                const EdgeInsets.all(12.0),
+                                                child: Text(
+                                                  "ПРИНЯТЬ ЗАКАЗ",
+                                                  style: TextStyle(
+                                                    fontSize: 14.0,
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: "UniNeue",
+                                                  ),
+                                                ),
+                                              ),
+                                              color: Color(0xFFFD6F6D),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.rectangle,
+                                    borderRadius: BorderRadius.circular(4.0),
+                                    color: Color(0xFFFFFFFF),
+                                    border: Border.all(
+                                        color: Color(0xFFECEEEC), width: 1.0),
+                                  ),
                                 ),
                               ),
+                              width: double.infinity,
                             ),
-                            width: double.infinity,
                           ),
+                        ],
+                      ),
+                    );
+                  });
+            } else if (!isSwitched) {
+              return Container(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8.0, top: 80.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Заказы вам не доступны",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 40.0,
                         ),
-                      ],
-                    ),
-                  );
-                });
-          } else if (!isSwitched) {
-            return Container(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8.0, top: 80.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Заказы вам не доступны",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 40.0,
                       ),
-                    ),
-                    Text(
-                      "Чтобы получить доступ к свободным заказам, пожалуйста перейдите в онлайн",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.0,
+                      Text(
+                        "Чтобы получить доступ к свободным заказам, пожалуйста перейдите в онлайн",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18.0,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          } else if (isSwitched && !snapshot.hasData) {
+              );
+            } else if (isSwitched && !snapshot.hasData) {
+              return Container(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8.0, top: 80.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "На данный момент заказы отсутсвуют",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 40.0,
+                        ),
+                      ),
+                      Text(
+                        "Ожидайте...",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+          } else {
             return Container(
               child: Padding(
                 padding: const EdgeInsets.only(left: 8.0, top: 80.0),
@@ -523,7 +537,7 @@ class _DeliveryListState extends State<DeliveryList> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "На данный момент заказы отсутсвуют",
+                      "Подключение отсутсвует",
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
@@ -531,7 +545,7 @@ class _DeliveryListState extends State<DeliveryList> {
                       ),
                     ),
                     Text(
-                      "Ожидайте...",
+                      "Проверьте соединение с интернетом",
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,

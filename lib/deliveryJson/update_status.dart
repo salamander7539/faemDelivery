@@ -1,5 +1,3 @@
-import 'package:faem_delivery/deliveryJson/get_init_data.dart';
-import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -40,6 +38,5 @@ Future<int> getStatusOrder(
     print('Status update failed with status: ${response.statusCode}.');
     print(response.body);
   }
-//  print(response.body);
   return response.statusCode;
 }

@@ -1,4 +1,3 @@
-import 'package:faem_delivery/Internet/internet_connection.dart';
 import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
 import 'package:faem_delivery/deliveryJson/get_history_data.dart';
@@ -16,7 +15,6 @@ class UserInformation extends StatefulWidget {
 }
 
 class _UserInformationState extends State<UserInformation> {
-  var fio, number, deliverAddress, passport;
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +61,6 @@ class _UserInformationState extends State<UserInformation> {
               child: Switch(
                 value: isSwitched,
                 onChanged: (value) async {
-                  if (await Internet.checkConnection()) {
                     if (this.mounted) {
                       setState(() {
                         isSwitched = value;
@@ -86,12 +83,6 @@ class _UserInformationState extends State<UserInformation> {
                         });
                       }
                     }
-                  } else {
-                    setState(() {
-                      isSwitched = false;
-                      PopUp.showInternetDialog();
-                    });
-                  }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),
                 activeTrackColor: Color(0xFFAFE14C),

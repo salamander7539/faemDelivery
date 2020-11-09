@@ -1,4 +1,3 @@
-import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
 import 'package:faem_delivery/deliveryJson/get_init_data.dart';
 import 'package:faem_delivery/deliveryJson/update_status.dart';
 import 'package:flutter/material.dart';

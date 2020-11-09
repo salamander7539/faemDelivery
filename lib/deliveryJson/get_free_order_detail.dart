@@ -1,4 +1,3 @@
-import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -18,7 +17,7 @@ Future<dynamic> getDetailOrdersData(var uuid) async {
     orderDetail = json.decode(response.body);
     if (orderDetail['order']['products_data'] != null) {
       products = orderDetail['order']['products_data']['products'];
-
+      print("ORDER ${orderDetail['order']}");
     } else {
       products = orderDetail['order']['products_data'];
     }

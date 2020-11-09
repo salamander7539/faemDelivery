@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:connectivity/connectivity.dart';
 import 'package:device_id/device_id.dart';
 import 'package:faem_delivery/deliveryJson/deliver_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -11,8 +9,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'deliveryJson/get_orders.dart';
-import 'main.dart';
 
 String driverName, phone, deviceId;
 var fcmToken, answerOrderState;

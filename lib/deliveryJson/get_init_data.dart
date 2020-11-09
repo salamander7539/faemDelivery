@@ -1,4 +1,3 @@
-import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -14,7 +13,7 @@ int responseTime, arrivalTimeToFirstPoint, arrivalTimeToSecondPoint, arrivalUnix
 Future<int> deliverInitData() async {
   var url = 'https://driver.apis.stage.faem.pro/api/v2/initdata';
   var body = json.encode("");
-  var response = await http.post(url, body: body, headers: <String, String>{
+  http.Response response = await http.post(url, body: body, headers: <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
     'Authorization': 'Bearer ${sharedPreferences.get('token')}'
   });
@@ -25,9 +24,7 @@ Future<int> deliverInitData() async {
       var responseUnix = initData['order_data']['offer']['response_time'];
       arrivalTimeToFirstPoint = initData['order_data']['offer']['route_to_client']['properties']['duration'] - 1;
       distanceToFirstPoint = initData['order_data']['offer']['route_to_client']['properties']['distance'] - 1;
-      //    print('distanceToFirstPoint: ${distanceToFirstPoint.round()}');
       distanceToSecondPoint = initData['order_data']['order']['route_way_data']['routes']['properties']['distance'];
-      //    print('distanceToSecondPoint: ${distanceToSecondPoint.round()}');
       arrivalTimeToSecondPoint = initData['order_data']['order']['route_way_data']['routes']['properties']['duration'];
       if (initData['order_data']['order']['products_data'] != null) {
         products = initData['order_data']['order']['products_data']['products'];
