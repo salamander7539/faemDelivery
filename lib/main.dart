@@ -181,7 +181,7 @@ class _DeliveryListState extends State<DeliveryList> {
       answer = await updateRefreshToken(sharedPreferences.get('refToken'));
       if (answer == 401) {
         await switchDeliverStatus('online');
-        _showDialog(updateResponse['message']);
+        // _showDialog(updateResponse['message']);
         Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
                 builder: (BuildContext context) => AuthPhoneScreen()),

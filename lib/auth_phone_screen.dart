@@ -318,8 +318,6 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
     );
   }
 
-
-
   getPhone() {
     phoneText = RichText(
       text: TextSpan(
