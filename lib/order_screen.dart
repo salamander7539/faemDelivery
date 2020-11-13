@@ -14,7 +14,9 @@ import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'Internet/show_pop_up.dart';
 import 'deliveryJson/get_orders.dart';
+import 'deliveryJson/send_location.dart';
 import 'deliveryJson/switch_deliver_status.dart';
 import 'main.dart';
 import 'package:map_launcher/map_launcher.dart';
@@ -101,11 +103,39 @@ class _OrderPageState extends State<OrderPage> {
                   }
                 },
                 child: Switch(
-                  value: _switchValue,
-                  inactiveThumbColor: Colors.white,
-                  inactiveTrackColor: Color(0xFFAFE14C),
+                  value: isSwitched,
+                  onChanged: (value) async {
+                    if (this.mounted && deliverStatus == null) {
+                      setState(() {
+                        isSwitched = value;
+                      });
+                      if (isSwitched) {
+                        await sendLocation();
+                        await switchDeliverStatus("online");
+                        if (this.mounted) {
+                          setState(() {
+                            opacity = 1;
+                          });
+                        }
+                      } else {
+                        await switchDeliverStatus("offline");
+                        if (this.mounted) {
+                          setState(() {
+                            opacity = 0.5;
+                          });
+                        }
+                      }
+                    } else {
+                      setState(() {
+                        isSwitched = false;
+                        PopUp.showInternetDialog();
+                      });
+                    }
+                  },
+                  inactiveTrackColor: Color(0xFFFF8064),
                   activeTrackColor: Color(0xFFAFE14C),
                   activeColor: Colors.white,
+
                 ),
               ),
             ),
@@ -531,9 +561,7 @@ class _OrderPageState extends State<OrderPage> {
                                   width:
                                       MediaQuery.of(context).size.width * .45,
                                   child: Text(
-                                    dataUse['order']['tariff']
-                                                ['products_price'] ==
-                                            0
+                                    dataUse['order']['tariff']['products_price'] == 0
                                         ? "Взять с клиента: ${dataUse['order']['tariff']['total_price'] - dataUse['order']['tariff']['bonus_payment']}₽\n\n$feature"
                                         : "Сумма выкупа: ${dataUse['order']['tariff']['products_price']}₽\nВзять с клиента: ${dataUse['order']['tariff']['products_price'] + dataUse['order']['tariff']['total_price'] - dataUse['order']['tariff']['bonus_payment']}₽\n\n$feature",
                                     style: TextStyle(
