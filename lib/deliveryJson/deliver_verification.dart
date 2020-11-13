@@ -25,8 +25,10 @@ Future<dynamic> loadCode(String deviceId, var code) async {
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
     token = jsonResponse['token'];
+    sharedPreferences.setString('token', token);
     status = response.statusCode;
     refToken = jsonResponse['refresh_token'];
+    sharedPreferences.setString('refToken', refToken);
   } else {
     status = response.statusCode;
     print('Request failed with status: ${response.statusCode}.');

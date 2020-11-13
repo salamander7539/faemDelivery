@@ -51,6 +51,8 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
   void initState() {
     //WidgetsBinding.instance.addObserver(this);
     super.initState();
+    isSwitched = false;
+    switchDeliverStatus('offline');
     // getLocation();
     connectivity = new Connectivity();
     subscription = connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
@@ -61,9 +63,22 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
           connectResult = true;
           opacity = 1.0;
         });
+        deliverInitData();
+        if (initData['driver_state']['value'] == 'offline') {
+          setState(() {
+            isSwitched = false;
+          });
+        } else if (initData['driver_state']['value'] == 'online') {
+          print('ONSTATE ${initData['driver_state']['value']}');
+          setState(() {
+            isSwitched = true;
+          });
+        }
       } else {
         setState(() {
+          opacity = 0.5;
           connectResult = false;
+          isSwitched = false;
         });
         PopUp.showInternetDialog();
       }
@@ -145,7 +160,7 @@ class _DeliveryListState extends State<DeliveryList> {
   @override
   void initState() {
     super.initState();
-    isSwitched = false;
+
     checkLoginStatus();
     stopwatch.start();
     stopwatch.stop();

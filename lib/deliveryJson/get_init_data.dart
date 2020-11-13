@@ -6,7 +6,7 @@ import 'deliver_verification.dart';
 import 'get_free_order_detail.dart';
 
 var initData;
-var deliverStatus;
+var deliverStatus, deliverONState;
 var distanceToFirstPoint, distanceToSecondPoint;
 int responseTime, arrivalTimeToFirstPoint, arrivalTimeToSecondPoint, arrivalUnixToFirstPoint, arrivalUnixToSecondPoint = 0;
 
@@ -20,6 +20,7 @@ Future<int> deliverInitData() async {
   if (response.statusCode == 200) {
     initData = json.decode(response.body);
     //print('InitData: ${response.body}');
+    deliverONState = initData['driver_state']['value'];
     if (initData['order_data'] != null) {
       var responseUnix = initData['order_data']['offer']['response_time'];
       arrivalTimeToFirstPoint = initData['order_data']['offer']['route_to_client']['properties']['duration'] - 1;
@@ -36,11 +37,6 @@ Future<int> deliverInitData() async {
       responseTime = responseUnix - currentUnix;
       arrivalUnixToFirstPoint = currentUnix + arrivalTimeToFirstPoint;
     }
-//    print('currentUnix $currentUnix');
-//    print('arrivalUnixToFirstPoint $arrivalUnixToFirstPoint seconds');
-//    print('responseTime $responseTime seconds');
-//    print('arrivalTimeToFirstPoint $arrivalTimeToFirstPoint seconds');
-//    print('arrivalTimeToSecondPoint $arrivalTimeToSecondPoint seconds');
   } else {
     print('Request failed with status: ${response.statusCode}.');
     print(response.body);

@@ -17,7 +17,6 @@ Future<dynamic> getOrdersData() async {
   if (response.statusCode == 200) {
     orders = json.decode(response.body);
     errorCode = response.statusCode;
-    // print('ORDERS $errorCode _ ${response.body}');
   } else {
     print("Error order with code ${response.statusCode}");
     errorCode = response.statusCode;

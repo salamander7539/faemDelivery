@@ -23,9 +23,9 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
 
   MaskTextInputFormatter maskTextInputFormatter = MaskTextInputFormatter(
       mask: "+7 ### ###-##-##", filter: {"#": RegExp(r'[0-9]')});
+
   Color buttonPhoneColor, buttonPhoneTextColor;
   bool buttonPhoneEnable, phoneWarning;
-
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -91,6 +91,8 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
     getToken();
   }
 
+  var phoneText;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,7 +153,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                             color: Color(0xFFFD6F6D),
                           ),
                         ),
-                        hintText: "+7 999 949-99-94",
+                        hintText: '+7 999 949-94-99',
                         hintStyle: TextStyle(
                           color: Color(0xFFC0BFC6),
                           fontSize: 20.0,
@@ -285,8 +287,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                           ),
                           onPressed: () async {
                             if (phoneController.text.length == 16) {
-                              phone =
-                                  "+7${maskTextInputFormatter.getUnmaskedText()}";
+                              phone = "+7${maskTextInputFormatter.getUnmaskedText()}";
                               // print(phone);
                               deviceId = await DeviceId.getID;
                               // print(deviceId);
@@ -313,6 +314,31 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+
+
+  getPhone() {
+    phoneText = RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: "+7 ",
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20.0,
+            )
+          ),
+          TextSpan(
+              text: "999 949-99-94",
+              style: TextStyle(
+                color: Color(0xFFC0BFC6),
+                fontSize: 20.0,
+              )
+          ),
+        ]
       ),
     );
   }

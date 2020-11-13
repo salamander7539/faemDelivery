@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:connectivity/connectivity.dart';
 import 'package:faem_delivery/animations/button_animation.dart';
 import 'package:faem_delivery/deliveryJson/assign_order.dart';
 import 'package:faem_delivery/deliveryJson/call_client.dart';
@@ -12,6 +15,7 @@ import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'deliveryJson/get_orders.dart';
+import 'deliveryJson/switch_deliver_status.dart';
 import 'main.dart';
 import 'package:map_launcher/map_launcher.dart';
 
@@ -30,6 +34,8 @@ class _OrderPageState extends State<OrderPage> {
   String buttonStatus;
   bool phoneVisibility;
   var dataUse;
+  var connectivity;
+  StreamSubscription<ConnectivityResult> subscription;
 
   onStartOrder(newStatus) {
     setState(() {
@@ -649,12 +655,11 @@ class _OrderPageState extends State<OrderPage> {
                                   }
                                 }
                                 if (deliverStatus == "order_payment") {
-                                  await getStatusOrder('finished',
-                                      dataUse['offer']['uuid'], null, null);
-                                  print('');
+                                  await getStatusOrder('finished', dataUse['offer']['uuid'], null, null);
                                   setState(() {
                                     deliverStatus = null;
                                   });
+                                  await switchDeliverStatus('online');
                                   Navigator.pop(context);
                                 }
                                 if (deliverStatus == null) {
@@ -688,9 +693,7 @@ class _OrderPageState extends State<OrderPage> {
                                             backgroundColor: Colors.white,
                                             builder: (context) {
                                               return StatefulBuilder(builder:
-                                                  (BuildContext context,
-                                                      StateSetter
-                                                          setModalState) {
+                                                  (BuildContext context, StateSetter setModalState) {
                                                 return Padding(
                                                   padding:
                                                       const EdgeInsets.only(
@@ -744,10 +747,8 @@ class _OrderPageState extends State<OrderPage> {
                                                                           () {
                                                                         arrivalTime =
                                                                             ((arrivalTimeToFirstPoint * coef[index] + currentTimeUnix)).round();
-                                                                        buttonIndex =
-                                                                            index;
-                                                                        print(
-                                                                            "B $buttonIndex");
+                                                                        buttonIndex = index;
+                                                                        print("B $buttonIndex");
                                                                       });
                                                                       print(
                                                                           "arrivalTime $arrivalTime");

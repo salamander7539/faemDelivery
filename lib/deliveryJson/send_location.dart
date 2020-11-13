@@ -2,12 +2,13 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
 import 'package:faem_delivery/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'deliver_verification.dart';
 
 
 Future<void> sendLocation() async {
-
+  sharedPreferences = await SharedPreferences.getInstance();
   var url = 'https://driver.apis.stage.faem.pro/api/v2/locations';
   var body = json.encode([
     {
