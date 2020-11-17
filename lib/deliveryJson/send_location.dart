@@ -4,10 +4,12 @@ import 'dart:convert';
 import 'package:faem_delivery/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'SendLocation.dart';
 import 'deliver_verification.dart';
 
 
-Future<void> sendLocation() async {
+Future<SendLocationData> sendLocation() async {
+  SendLocationData sendLocationData;
   sharedPreferences = await SharedPreferences.getInstance();
   var url = 'https://driver.apis.stage.faem.pro/api/v2/locations';
   var body = json.encode([
@@ -27,10 +29,12 @@ Future<void> sendLocation() async {
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
+      sendLocationData = new SendLocationData.fromJson(jsonResponse);
     } else {
       print('Request failed with status: ${response.statusCode}.');
       print(response.body);
     }
   }
+  return sendLocationData;
 }
 

@@ -24,7 +24,6 @@ import 'order_screen.dart';
 void main() => runApp(DeliveryApp());
 
 bool isSwitched;
-double opacity = 0.5;
 var orderUuid = "";
 int chosenIndex;
 const oneMinute = const Duration(minutes: 1);
@@ -61,7 +60,6 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
         getOrdersData();
         setState(() {
           connectResult = true;
-          opacity = 1.0;
         });
         deliverInitData();
         if (initData['driver_state']['value'] == 'offline') {
@@ -76,7 +74,6 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
         }
       } else {
         setState(() {
-          opacity = 0.5;
           connectResult = false;
           isSwitched = false;
         });
@@ -189,7 +186,6 @@ class _DeliveryListState extends State<DeliveryList> {
         await deliverInitData();
         if (initData['order_data'] != null) {
           isSwitched = true;
-          opacity = 1;
           Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => OrderPage()));
         }
       }
@@ -258,18 +254,8 @@ class _DeliveryListState extends State<DeliveryList> {
                     if (isSwitched) {
                       await sendLocation();
                       await switchDeliverStatus("online");
-                      if (this.mounted) {
-                        setState(() {
-                          opacity = 1;
-                        });
-                      }
                     } else {
                       await switchDeliverStatus("offline");
-                      if (this.mounted) {
-                        setState(() {
-                          opacity = 0.5;
-                        });
-                      }
                     }
                   } else {
                     setState(() {

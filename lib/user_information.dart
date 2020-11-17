@@ -69,19 +69,9 @@ class _UserInformationState extends State<UserInformation> {
                     if (isSwitched) {
                       await updateRefreshToken(sharedPreferences.get('refToken'));
                       await switchDeliverStatus("online");
-                      if (this.mounted) {
-                        setState(() {
-                          opacity = 1;
-                        });
-                      }
                     } else {
                       await updateRefreshToken(sharedPreferences.get('refToken'));
                       await switchDeliverStatus("offline");
-                      if (this.mounted) {
-                        setState(() {
-                          opacity = 0.5;
-                        });
-                      }
                     }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),

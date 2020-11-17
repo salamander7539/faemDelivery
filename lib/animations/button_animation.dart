@@ -90,7 +90,7 @@ class _ButtonAnimationState extends State<ButtonAnimation>
                 setState(() {
                   widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
                 });
-                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
               });
             }
           });

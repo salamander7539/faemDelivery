@@ -37,6 +37,7 @@ class _OrderPageState extends State<OrderPage> {
   bool phoneVisibility;
   var dataUse;
   var connectivity;
+  double opacity = 1.0;
   StreamSubscription<ConnectivityResult> subscription;
 
   onStartOrder(newStatus) {
@@ -339,7 +340,7 @@ class _OrderPageState extends State<OrderPage> {
                                           children: [
                                             Text(
                                               (dataUse['order']['routes']).length > 1 && dataUse['order'] != null
-                                                  ? dataUse['order']['routes'][1]['value'] : "",
+                                                   ? dataUse['order']['routes'][1]['value'] : "",
                                               style: TextStyle(
                                                 fontSize: 24.0,
                                                 height: 1.0,
@@ -361,15 +362,20 @@ class _OrderPageState extends State<OrderPage> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    (dataUse['order']['routes']).length > 1
-                                        ? "${dataUse['order']['routes'][1]['street']}, ${dataUse['order']['routes'][1]['house']} • ${((dataUse['order']['route_way_data']['routes']['properties']['distance']) / 1000).toStringAsFixed(1)}км от вас"
-                                        : "",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: (16.0),
-                                      fontFamily: 'UniNeue',
-                                      fontWeight: FontWeight.bold,
+                                  Container(
+                                    width:
+                                    MediaQuery.of(context).size.width *
+                                        0.8,
+                                    child: Text(
+                                      (dataUse['order']['routes']).length > 1
+                                          ? "${dataUse['order']['routes'][1]['street']}, ${dataUse['order']['routes'][1]['house']} • ${((dataUse['order']['route_way_data']['routes']['properties']['distance']) / 1000).toStringAsFixed(1)}км от вас"
+                                          : "",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: (16.0),
+                                        fontFamily: 'UniNeue',
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                   Container(
@@ -743,38 +749,23 @@ class _OrderPageState extends State<OrderPage> {
                                                               direction: Axis
                                                                   .horizontal,
                                                               children:
-                                                                  List.generate(
-                                                                      5,
+                                                                  List.generate(5,
                                                                       (index) {
                                                                 return Container(
-                                                                  width: MediaQuery.of(
-                                                                              context)
-                                                                          .size
-                                                                          .width *
-                                                                      .16,
-                                                                  height: MediaQuery.of(
-                                                                              context)
-                                                                          .size
-                                                                          .width *
-                                                                      .16,
-                                                                  margin: EdgeInsets
-                                                                      .symmetric(
-                                                                          horizontal:
-                                                                              4.0),
-                                                                  child:
-                                                                      FlatButton(
-                                                                    shape:
-                                                                        RoundedRectangleBorder(
-                                                                      borderRadius:
-                                                                          BorderRadius.all(
-                                                                              Radius.circular(4.0)),
+                                                                  width: MediaQuery.of(context).size.width * .16,
+                                                                  height: MediaQuery.of(context).size.width * .16,
+                                                                  margin: EdgeInsets.symmetric(
+                                                                      horizontal: 4.0),
+                                                                  child: FlatButton(
+                                                                    shape: RoundedRectangleBorder(
+                                                                      borderRadius: BorderRadius.all(Radius.circular(4.0)),
                                                                     ),
-                                                                    onPressed:
-                                                                        () async {
-                                                                      setModalState(
-                                                                          () {
-                                                                        arrivalTime =
-                                                                            ((arrivalTimeToFirstPoint * coef[index] + currentTimeUnix)).round();
+                                                                    onPressed: () async {
+                                                                      setModalState(() {
+                                                                        arrivalTime = ((arrivalTimeToFirstPoint * coef[index] + currentTimeUnix)).round();
+                                                                        if (arrivalTime == 0) {
+                                                                          arrivalTime = arrivalTime + index + 1;
+                                                                        }
                                                                         buttonIndex = index;
                                                                         print("B $buttonIndex");
                                                                       });

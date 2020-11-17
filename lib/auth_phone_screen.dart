@@ -12,7 +12,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 String driverName, phone, deviceId;
 var fcmToken, answerOrderState;
-TextEditingController phoneController = TextEditingController();
 
 class AuthPhoneScreen extends StatefulWidget {
   @override
@@ -20,7 +19,7 @@ class AuthPhoneScreen extends StatefulWidget {
 }
 
 class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
-
+  final TextEditingController _phoneController = new TextEditingController();
   MaskTextInputFormatter maskTextInputFormatter = MaskTextInputFormatter(
       mask: "+7 ### ###-##-##", filter: {"#": RegExp(r'[0-9]')});
 
@@ -91,7 +90,6 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
     getToken();
   }
 
-  var phoneText;
 
   @override
   Widget build(BuildContext context) {
@@ -141,18 +139,26 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                         fontWeight: FontWeight.bold,
                         fontSize: 20.0,
                       ),
-                      textAlign: TextAlign.center,
-                      controller: phoneController,
+                      textAlign: TextAlign.start,
+                      controller: _phoneController,
                       autofocus: true,
                       inputFormatters: [maskTextInputFormatter],
                       autocorrect: false,
                       keyboardType: TextInputType.phone,
                       decoration: InputDecoration(
+                        // suffixIcon: IconButton(
+                        //   icon: Icon(Icons.close),
+                        //   onPressed: () {
+                        //     maskTextInputFormatter.formatEditUpdate(TextEditingValue(text: _phoneController.value.text, selection: TextSelection(baseOffset: 0, extentOffset: _phoneController.value.text.length)), TextEditingValue.empty);
+                        //     _phoneController.value = TextEditingValue.empty;
+                        //   },
+                        // ),
                         border: new UnderlineInputBorder(
                           borderSide: new BorderSide(
                             color: Color(0xFFFD6F6D),
                           ),
                         ),
+                        contentPadding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.305),
                         hintText: '+7 999 949-94-99',
                         hintStyle: TextStyle(
                           color: Color(0xFFC0BFC6),
@@ -286,7 +292,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                             ),
                           ),
                           onPressed: () async {
-                            if (phoneController.text.length == 16) {
+                            if (_phoneController.text.length == 16) {
                               phone = "+7${maskTextInputFormatter.getUnmaskedText()}";
                               // print(phone);
                               deviceId = await DeviceId.getID;
@@ -294,11 +300,17 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                               await loadAuthData(deviceId, phone);
                               if (respCode == 200) {
                                 Navigator.pushNamed(context, "/authCodePage");
-                                phoneController.clear();
+                                if (this.mounted) {
+                                  setState(() {
+                                    maskTextInputFormatter.formatEditUpdate(TextEditingValue(text: _phoneController.value.text, selection: TextSelection(baseOffset: 0, extentOffset: _phoneController.value.text.length)), TextEditingValue.empty);
+                                    _phoneController.value = TextEditingValue.empty;
+                                  });
+                                }
                               } else {
                                 if (this.mounted) {
                                   setState(() {
-                                    phoneController.clear();
+                                    maskTextInputFormatter.formatEditUpdate(TextEditingValue(text: _phoneController.value.text, selection: TextSelection(baseOffset: 0, extentOffset: _phoneController.value.text.length)), TextEditingValue.empty);
+                                    _phoneController.value = TextEditingValue.empty;
                                     phoneWarning = true;
                                   });
                                 }
@@ -318,28 +330,28 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
     );
   }
 
-  getPhone() {
-    phoneText = RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: "+7 ",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 20.0,
-            )
-          ),
-          TextSpan(
-              text: "999 949-99-94",
-              style: TextStyle(
-                color: Color(0xFFC0BFC6),
-                fontSize: 20.0,
-              )
-          ),
-        ]
-      ),
-    );
-  }
+  // getPhone() {
+  //   phoneText = RichText(
+  //     text: TextSpan(
+  //       children: [
+  //         TextSpan(
+  //           text: "+7 ",
+  //           style: TextStyle(
+  //             color: Colors.black,
+  //             fontSize: 20.0,
+  //           )
+  //         ),
+  //         TextSpan(
+  //             text: "999 949-99-94",
+  //             style: TextStyle(
+  //               color: Color(0xFFC0BFC6),
+  //               fontSize: 20.0,
+  //             )
+  //         ),
+  //       ]
+  //     ),
+  //   );
+  // }
 
   TextStyle urlLinkText() {
     return TextStyle(

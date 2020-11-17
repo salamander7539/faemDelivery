@@ -16,7 +16,7 @@ Future<dynamic> remindPassword() async {
     'Authorization': 'Bearer ${sharedPreferences.get('token')}'
   });
   if (response.statusCode == 200) {
-    ////////////////////////////////////////////////////////////
+    print(response.body);
   } else {
     print("Error order with code ${response.statusCode}");
     print(response.body);

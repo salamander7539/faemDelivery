@@ -6,10 +6,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
-
-var deliverValue;
+import 'DriverStatusData.dart';
 
 Future<String> switchDeliverStatus(String statusValue) async {
+  var deliverValue;
+  DriverStatusData driverStatusData;
   var url = 'https://driver.apis.stage.faem.pro/api/v2/setstate?state=$statusValue';
   var body = json.encode("");
   var response = await http.post(url, body: body, headers: <String, String>{
@@ -18,8 +19,9 @@ Future<String> switchDeliverStatus(String statusValue) async {
   });
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
-    deliverValue = jsonResponse['driver_state']['value'];
-    print("deliverStatus: $deliverValue");
+    driverStatusData = new DriverStatusData.fromJson(jsonResponse);
+    deliverValue = driverStatusData.driverState.value;
+    print("deliverStatus: ${response.body}");
     if (deliverValue == 'online') {
       if (errorCode == 401) {
         updateRefreshToken(sharedPreferences.get('refToken'));

@@ -1,4 +1,5 @@
 import 'package:faem_delivery/Internet/show_pop_up.dart';
+import 'package:faem_delivery/deliveryJson/HistoryData.dart';
 import 'package:faem_delivery/deliveryJson/get_history_data.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ class HistoryList extends StatefulWidget {
 }
 
 class _HistoryListState extends State<HistoryList> {
+  double opacity;
   @override
   void initState() {
     // TODO: implement initState
@@ -108,12 +110,12 @@ class _HistoryListState extends State<HistoryList> {
         child: FutureBuilder(
           future: getHistoryData(),
           // ignore: missing_return
-          builder: (context, AsyncSnapshot snapshot) {
-            if (countOfOrders > 0) {
+          builder: (BuildContext context, AsyncSnapshot<HistoryData> snapshot) {
+            if (snapshot.hasData && countOfOrders > 0) {
               return ListView.builder(
                 itemCount: countOfOrders == 0 ? 0 : countOfOrders,
                 itemBuilder: (context, index) {
-                  DateTime dateString = DateTime.parse(historyData['orders'][index]['created_at']);
+                  DateTime dateString = DateTime.parse("${snapshot.data.orders[index].createdAt}");
                   var plusThreeHours = dateString.add(new Duration(hours: 3));
                   String cancelTime = DateFormat("hh:mm:ss").format(plusThreeHours);
                   return Container(
@@ -147,7 +149,8 @@ class _HistoryListState extends State<HistoryList> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${historyData['orders'][index]['routes'][0]['value']}",
+                                      "${snapshot.data.orders[index].routes[0].value}",
+                                  // historyData['orders'][index]['routes'][0]['value']
                                       style: TextStyle(
                                         fontSize: 24.0,
                                         fontWeight: FontWeight.bold,
@@ -170,7 +173,7 @@ class _HistoryListState extends State<HistoryList> {
                               child: Column(
                                 children: [
                                   Text(
-                                    '${historyData['orders'][index]['routes'][0]['street']}, ${historyData['orders'][index]['routes'][0]['house']} • $cancelTime',
+                                    '${snapshot.data.orders[index].routes[0].street}, ${snapshot.data.orders[index].routes[0].house} • $cancelTime',
                                     // "${historyData['order']['routes'][0]['street']}, ${historyData['order']['routes'][0]['house']} • ",
                                     style: TextStyle(
                                       color: Colors.black,
@@ -185,7 +188,8 @@ class _HistoryListState extends State<HistoryList> {
                             Transform(
                               transform: Matrix4.translationValues(0.0, 0.0, 0.0),
                               child: Text(
-                                '${historyData['orders'][index]['tariff']['total_price']}₽',
+                                '${snapshot.data.orders[index].tariff.totalPrice}₽',
+                                // historyData['orders'][index]['tariff']['total_price']
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 14.0,

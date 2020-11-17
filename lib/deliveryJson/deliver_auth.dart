@@ -2,6 +2,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
+import 'AuthData.dart';
+
 var respCode, respMessage, remindMessage;
 
 Future<AuthData> loadAuthData(String deviceId, String phone) async {
@@ -16,9 +18,10 @@ Future<AuthData> loadAuthData(String deviceId, String phone) async {
   });
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
+    print(response.body);
     authData = new AuthData.fromJson(jsonResponse);
     respCode = response.statusCode;
-    respMessage = jsonResponse['message'];
+    respMessage = authData.message;
     if (respMessage == 'Введите пароль из смс сообщения') {
       remindMessage = null;
     } else if (respMessage == 'Введите пароль') {
@@ -29,28 +32,4 @@ Future<AuthData> loadAuthData(String deviceId, String phone) async {
   }
   print(response.statusCode);
   return authData;
-}
-
-
-class AuthData {
-  int code;
-  String message;
-
-  // ignore: non_constant_identifier_names
-  int next_request_time;
-
-  AuthData({
-    this.code,
-    this.message,
-    // ignore: non_constant_identifier_names
-    this.next_request_time
-  });
-
-  factory AuthData.fromJson(Map<String, dynamic> parsedJson){
-    return AuthData(
-        code: parsedJson['code'],
-        message: parsedJson['message'],
-        next_request_time: parsedJson['next_request_time']
-    );
-  }
 }

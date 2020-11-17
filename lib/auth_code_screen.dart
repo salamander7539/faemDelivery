@@ -53,6 +53,7 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
             color: Colors.black,
           ),
           onPressed: () {
+            phone = null;
             Navigator.pop(context);
           },
         ),
@@ -60,6 +61,10 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
         actions: [
           IconButton(
             onPressed: () {
+              setState(() {
+                phone = null;
+
+              });
               Navigator.pop(context);
             },
             icon: Icon(
