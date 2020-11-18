@@ -107,7 +107,7 @@ class _HistoryListState extends State<HistoryList> {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         color: Colors.white,
-        child: FutureBuilder(
+        child: FutureBuilder<HistoryData>(
           future: getHistoryData(),
           // ignore: missing_return
           builder: (BuildContext context, AsyncSnapshot<HistoryData> snapshot) {

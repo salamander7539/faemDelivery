@@ -17,7 +17,7 @@ Future<HistoryData> getHistoryData() async {
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
     historyData = new HistoryData.fromJson(jsonResponse);
-    print('historyData: $jsonResponse');
+    //print('historyData: $jsonResponse');
     countOfOrders = historyData.countOfCompletedOrders;
     earningsToday = historyData.earningsToday;
 
