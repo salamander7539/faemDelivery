@@ -3,8 +3,6 @@ import 'package:connectivity/connectivity.dart';
 import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/auth_code_screen.dart';
 import 'package:faem_delivery/auth_phone_screen.dart';
-import 'package:faem_delivery/deliveryJson/InitData.dart';
-import 'package:faem_delivery/deliveryJson/OrdersListData.dart';
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
 import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
@@ -18,8 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 import 'deliveryJson/get_orders.dart';
 
 import 'order_screen.dart';
@@ -27,6 +24,7 @@ import 'order_screen.dart';
 void main() => runApp(DeliveryApp());
 
 bool isSwitched;
+double opacity = 0.5;
 var orderUuid = "";
 int chosenIndex;
 const oneMinute = const Duration(minutes: 1);
@@ -49,7 +47,6 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
   var connectivity;
   StreamSubscription<ConnectivityResult> subscription;
 
-
   @override
   void initState() {
     //WidgetsBinding.instance.addObserver(this);
@@ -64,6 +61,7 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
         getOrdersData();
         setState(() {
           connectResult = true;
+          opacity = 1.0;
         });
         deliverInitData();
         if (initData['driver_state']['value'] == 'offline') {
@@ -78,6 +76,7 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
         }
       } else {
         setState(() {
+          opacity = 0.5;
           connectResult = false;
           isSwitched = false;
         });
@@ -154,10 +153,6 @@ final Stopwatch stopwatch = new Stopwatch();
 var milliseconds;
 
 class _DeliveryListState extends State<DeliveryList> {
-
-  List<OrdersListData> ordersItems = new List<OrdersListData>();
-
-
   DateTime backButtonPressedTime;
   var category;
   var answer;
@@ -194,6 +189,7 @@ class _DeliveryListState extends State<DeliveryList> {
         await deliverInitData();
         if (initData['order_data'] != null) {
           isSwitched = true;
+          opacity = 1;
           Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => OrderPage()));
         }
       }
@@ -212,7 +208,90 @@ class _DeliveryListState extends State<DeliveryList> {
   //   );
   // }
 
-
+  _getOrdersList() {
+    return new Scaffold(
+      drawer: new TaxiMenu(),
+      appBar: AppBar(
+        bottom: PreferredSize(
+            child: Container(
+              color: Color(0xFFECEEEC),
+              height: 1.0,
+            ),
+            preferredSize: Size.fromHeight(1.0)),
+        elevation: 0.0,
+        leading: Builder(builder: (context) {
+          return IconButton(
+            icon: Icon(
+              Icons.menu,
+              color: Colors.black,
+            ),
+            onPressed: () async {
+              await getHistoryData();
+              Scaffold.of(context).openDrawer();
+            },
+          );
+        }),
+        title: Transform(
+          transform: Matrix4.translationValues(-15.0, 0.0, 0.0),
+          child: Text(
+            "Активные заказы",
+            style: TextStyle(
+              fontSize: 19.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              fontFamily: "UniNeue",
+            ),
+          ),
+        ),
+        actions: [
+          Padding(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+            child: Container(
+              child: Switch(
+                value: isSwitched,
+                onChanged: (value) async {
+                  if (this.mounted) {
+                    setState(() {
+                      isSwitched = value;
+                    });
+                    if (isSwitched) {
+                      await sendLocation();
+                      await switchDeliverStatus("online");
+                      if (this.mounted) {
+                        setState(() {
+                          opacity = 1;
+                        });
+                      }
+                    } else {
+                      await switchDeliverStatus("offline");
+                      if (this.mounted) {
+                        setState(() {
+                          opacity = 0.5;
+                        });
+                      }
+                    }
+                  } else {
+                    setState(() {
+                      isSwitched = false;
+                      PopUp.showInternetDialog();
+                    });
+                  }
+                },
+                inactiveTrackColor: Color(0xFFFF8064),
+                activeTrackColor: Color(0xFFAFE14C),
+                activeColor: Colors.white,
+              ),
+            ),
+          ),
+        ],
+        backgroundColor: Colors.white,
+      ),
+      backgroundColor: Color(0xFFF7F7F7),
+      resizeToAvoidBottomPadding: false,
+      body: _getFutureOrdersList(),
+    );
+  }
 
   _bodyOfflineStatus(offTitle, offSubtitle) {
     return Container(
@@ -296,8 +375,7 @@ class _DeliveryListState extends State<DeliveryList> {
                                       vertical: 8.0,
                                       horizontal: 20.0),
                                   child: Text(
-                                    (ordersItems[orderIndex].order.tariff.paymentType).toUpperCase(),
-                                    //orders[orderIndex]['order']['tariff']['payment_type']
+                                    (orders[orderIndex]['order']['tariff']['payment_type']).toUpperCase(),
                                     style: TextStyle(
                                       fontSize: 11.0,
                                       color: Color(0xFFFD6F6D),
@@ -332,8 +410,7 @@ class _DeliveryListState extends State<DeliveryList> {
                               transform:
                               Matrix4.translationValues(-15.0, 0.0, 0.0),
                               child: Text(
-                                "${ordersItems[orderIndex].order.routes[0].value}",
-                                //orders[orderIndex]['order']['routes'][0]['value']
+                                "${orders[orderIndex]['order']['routes'][0]['value']}",
                                 style: TextStyle(
                                   fontSize: 24.0,
                                   fontWeight: FontWeight.bold,
@@ -345,7 +422,7 @@ class _DeliveryListState extends State<DeliveryList> {
                               transform: Matrix4.translationValues(
                                   -15.0, 0.0, 0.0),
                               child: Text(
-                                "${ordersItems[orderIndex].order.routes[0].street}, ${ordersItems[orderIndex].order.routes[0].house} • ${(ordersItems[orderIndex].offer.routeToClient.properties.distance / 1000).toStringAsFixed(1)}км от вас",
+                                "${orders[orderIndex]['order']['routes'][0]['street']}, ${orders[orderIndex]['order']['routes'][0]['house']} • ${(orders[orderIndex]['offer']['route_to_client']['properties']['distance'] / 1000).toStringAsFixed(1)}км от вас",
                                 style: TextStyle(
                                   color: Color(0xFF878A87),
                                   fontSize: (16.0),
@@ -373,8 +450,7 @@ class _DeliveryListState extends State<DeliveryList> {
                                 setState(() {
                                   chosenIndex = orderIndex;
                                 });
-                                var accessCode = await getDetailOrdersData(ordersItems[chosenIndex].offer.uuid);
-                                //orders[chosenIndex]['offer']['uuid']
+                                var accessCode = await getDetailOrdersData(orders[chosenIndex]['offer']['uuid']);
                                 if (accessCode == 200) {
                                   await deliverInitData();
                                   Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
@@ -418,18 +494,16 @@ class _DeliveryListState extends State<DeliveryList> {
   }
 
   _getFutureOrdersList() {
-    return FutureBuilder<List<OrdersListData>>(
+    return FutureBuilder(
       future: getOrdersData(),
       // ignore: missing_return
-      builder: (BuildContext context, AsyncSnapshot<List<OrdersListData>> snapshot) {
+      builder: (context, AsyncSnapshot snapshot) {
         if (connectResult == true) {
           if (isSwitched && snapshot.hasData) {
             return ListView.builder(
-                itemCount: orders != null ? orders.length : 0,
+                itemCount: orders == null ? 0 : orders.length,
                 itemBuilder: (context, index) {
-                  ordersItems = snapshot.data;
-                  switch (ordersItems[index].order.routes[0].category) {
-                  // orders[index]['order']['routes'][0]['category']
+                  switch (orders[index]['order']['routes'][0]['category']) {
                     case 'Рестораны':
                       category = 'ресторана';
                       break;
@@ -443,7 +517,7 @@ class _DeliveryListState extends State<DeliveryList> {
                       category = 'заведения';
                       break;
                   }
-                 return _orderWindow(index, category);
+                  return _orderWindow(index, category);
                 });
           } else if (!isSwitched) {
             return _bodyOfflineStatus("Заказы вам не доступны", "Чтобы получить доступ к свободным заказам, пожалуйста перейдите в онлайн");
@@ -459,77 +533,6 @@ class _DeliveryListState extends State<DeliveryList> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      drawer: new TaxiMenu(),
-      appBar: AppBar(
-        bottom: PreferredSize(
-            child: Container(
-              color: Color(0xFFECEEEC),
-              height: 1.0,
-            ),
-            preferredSize: Size.fromHeight(1.0)),
-        elevation: 0.0,
-        leading: Builder(builder: (context) {
-          return IconButton(
-            icon: Icon(
-              Icons.menu,
-              color: Colors.black,
-            ),
-            onPressed: () async {
-              await getHistoryData();
-              Scaffold.of(context).openDrawer();
-            },
-          );
-        }),
-        title: Transform(
-          transform: Matrix4.translationValues(-15.0, 0.0, 0.0),
-          child: Text(
-            "Активные заказы",
-            style: TextStyle(
-              fontSize: 19.0,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-              fontFamily: "UniNeue",
-            ),
-          ),
-        ),
-        actions: [
-          Padding(
-            padding:
-            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-            child: Container(
-              child: Switch(
-                value: isSwitched,
-                onChanged: (value) async {
-                  if (this.mounted) {
-                    setState(() {
-                      isSwitched = value;
-                    });
-                    if (isSwitched) {
-                      await sendLocation();
-                      await switchDeliverStatus("online");
-                    } else {
-                      await switchDeliverStatus("offline");
-                    }
-                  } else {
-                    setState(() {
-                      isSwitched = false;
-                      PopUp.showInternetDialog();
-                    });
-                  }
-                },
-                inactiveTrackColor: Color(0xFFFF8064),
-                activeTrackColor: Color(0xFFAFE14C),
-                activeColor: Colors.white,
-              ),
-            ),
-          ),
-        ],
-        backgroundColor: Colors.white,
-      ),
-      backgroundColor: Color(0xFFF7F7F7),
-      resizeToAvoidBottomPadding: false,
-      body: _getFutureOrdersList(),
-    );
+    return _getOrdersList();
   }
 }

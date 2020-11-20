@@ -84,12 +84,12 @@ class _OrderPageState extends State<OrderPage> {
             color: Colors.black,
           ),
           onPressed: () async {
-            if (dataUse['offer']['uuid'] != null && orderValue == null ||
-                orderValue == 'offer_offered') {
-              await getStatusOrder(
-                  "offer_rejected", dataUse['offer']['uuid'], null, null);
+            if (dataUse['offer']['uuid'] != null && (orderValue == null || orderValue == 'offer_offered')) {
+              print("${dataUse['offer']['uuid']}");
+              await getStatusOrder("offer_rejected", dataUse['offer']['uuid'], null, null);
               Navigator.pop(context);
             }
+
           },
         ),
         actions: [
@@ -622,11 +622,9 @@ class _OrderPageState extends State<OrderPage> {
                                   statusCode = await getStatusOrder('on_place',
                                       dataUse['offer']['uuid'], null, 0);
                                   if (statusCode == 200) {
-                                    await deliverInitData();
                                     await getStatusOrder('on_the_way',
                                         dataUse['offer']['uuid'], null, null);
-                                    setState(() async {
-                                      await deliverInitData();
+                                    setState(()  {
                                       clientVisibility = true;
                                       switchToClient = (dataUse['order']
                                                   ['client']['comment'])
@@ -645,10 +643,8 @@ class _OrderPageState extends State<OrderPage> {
                                     });
                                   } else if (statusCode == 406) {
                                     createAlertDialog(context, 'on_place',
-                                        message, "ПРИБЫЛ К КЛИЕНТУ");
-                                    await deliverInitData();
-                                    setState(() async {
-                                      await deliverInitData();
+                                        message, "ПРИБЫЛ К КЛИЕНТУ", dataUse);
+                                    setState(()  {
                                       switchToClient = (dataUse['order']
                                                   ['client']['comment'])
                                               .contains(new RegExp(
@@ -667,23 +663,18 @@ class _OrderPageState extends State<OrderPage> {
                                   }
                                 }
                                 if (deliverStatus == 'on_the_way') {
-                                  statusCode = await getStatusOrder(
-                                      'order_payment',
-                                      dataUse['offer']['uuid'],
-                                      null,
-                                      null);
+                                  statusCode = await getStatusOrder('order_payment', dataUse['offer']['uuid'], null, null);
                                   if (statusCode == 200) {
-                                    setState(() async {
-                                      buttonStatus = 'ОТДАЛ ЗАКАЗ';
+                                    buttonStatus = 'ОТДАЛ ЗАКАЗ';
+                                    setState(() {
                                       deniedCallVisibility = true;
                                     });
                                     // deliverStatus = dataUse['order_state']['value'];
-                                    await deliverInitData();
+
                                   } else if (statusCode == 406) {
                                     createAlertDialog(context, 'order_payment',
-                                        message, 'ОТДАЛ ЗАКАЗ');
-                                    setState(() async {
-                                      await deliverInitData();
+                                        message, 'ОТДАЛ ЗАКАЗ', dataUse);
+                                    setState(()  {
                                       deniedCallVisibility = true;
                                     });
                                   }
@@ -693,145 +684,135 @@ class _OrderPageState extends State<OrderPage> {
                                   setState(() {
                                     deliverStatus = null;
                                   });
-                                  await switchDeliverStatus('online');
                                   Navigator.pop(context);
                                 }
                                 if (deliverStatus == null) {
                                   setState(() {
                                     phoneVisibility = true;
                                   });
-                                  await updateRefreshToken(
-                                      sharedPreferences.get('refToken'));
-                                  var assignCode = await assignOrder(
-                                      dataUse['offer']['uuid']);
-                                  if (assignCode == 200) {
-                                    var statusCode = await getStatusOrder(
-                                        'offer_offered',
-                                        dataUse['offer']['uuid'],
-                                        null,
-                                        null);
-                                    if (statusCode == 200) {
-                                      var initCode = await deliverInitData();
-                                      if (initCode == 200) {
-                                        int currentTimeUnix = (DateTime.now()
-                                                    .millisecondsSinceEpoch /
-                                                1000)
-                                            .round();
-                                        arrivalTime =
-                                            ((arrivalTimeToFirstPoint +
-                                                    currentTimeUnix))
-                                                .round();
-                                        buttonIndex = 2;
-                                        return showModalBottomSheet(
-                                            context: context,
-                                            backgroundColor: Colors.white,
-                                            builder: (context) {
-                                              return StatefulBuilder(builder:
-                                                  (BuildContext context, StateSetter setModalState) {
-                                                return Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          top: 8.0),
-                                                  child: Container(
-                                                    height:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .height *
-                                                            .275,
-                                                    child: Visibility(
-                                                      child: Column(
-                                                        children: [
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(8.0),
-                                                            child: Wrap(
-                                                              direction: Axis
-                                                                  .horizontal,
-                                                              children:
-                                                                  List.generate(5,
-                                                                      (index) {
-                                                                return Container(
-                                                                  width: MediaQuery.of(context).size.width * .16,
-                                                                  height: MediaQuery.of(context).size.width * .16,
-                                                                  margin: EdgeInsets.symmetric(
-                                                                      horizontal: 4.0),
-                                                                  child: FlatButton(
-                                                                    shape: RoundedRectangleBorder(
-                                                                      borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                                                                    ),
-                                                                    onPressed: () async {
-                                                                      setModalState(() {
-                                                                        arrivalTime = ((arrivalTimeToFirstPoint * coef[index] + currentTimeUnix)).round();
-                                                                        if (arrivalTime == 0) {
-                                                                          arrivalTime = arrivalTime + index + 1;
-                                                                        }
-                                                                        buttonIndex = index;
-                                                                        print("B $buttonIndex");
-                                                                      });
-                                                                      print(
-                                                                          "arrivalTime $arrivalTime");
-                                                                    },
-                                                                    child: Text(
-                                                                      "${((arrivalTimeToFirstPoint * coef[index]) / 60).round()}",
-                                                                      style:
-                                                                          TextStyle(
-                                                                        color: buttonIndex !=
-                                                                                index
-                                                                            ? Colors.black
-                                                                            : Color(0xFFFD6F6D),
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                        fontSize:
-                                                                            fondTimeSize,
+                                  await updateRefreshToken(sharedPreferences.get('refToken'));
+                                  if (deliverStatus != "finished") {
+                                    var assignCode = await assignOrder(dataUse['offer']['uuid']);
+                                    if (assignCode == 200) {
+                                      var statusCode = await getStatusOrder('offer_offered', dataUse['offer']['uuid'], null, null);
+                                      if (statusCode == 200) {
+                                        var initCode = await deliverInitData();
+                                        if (initCode == 200) {
+                                          int currentTimeUnix = (DateTime.now().millisecondsSinceEpoch / 1000).round();
+                                          arrivalTime =
+                                              ((arrivalTimeToFirstPoint + currentTimeUnix)).round();
+                                          buttonIndex = 2;
+                                          return showModalBottomSheet(
+                                              context: context,
+                                              backgroundColor: Colors.white,
+                                              builder: (context) {
+                                                return StatefulBuilder(builder:
+                                                    (BuildContext context, StateSetter setModalState) {
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            top: 8.0),
+                                                    child: Container(
+                                                      height:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .height *
+                                                              .275,
+                                                      child: Visibility(
+                                                        child: Column(
+                                                          children: [
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(8.0),
+                                                              child: Wrap(
+                                                                direction: Axis
+                                                                    .horizontal,
+                                                                children:
+                                                                    List.generate(5,
+                                                                        (index) {
+                                                                  return Container(
+                                                                    width: MediaQuery.of(context).size.width * .16,
+                                                                    height: MediaQuery.of(context).size.width * .16,
+                                                                    margin: EdgeInsets.symmetric(
+                                                                        horizontal: 4.0),
+                                                                    child: FlatButton(
+                                                                      shape: RoundedRectangleBorder(
+                                                                        borderRadius: BorderRadius.all(Radius.circular(4.0)),
                                                                       ),
+                                                                      onPressed: () async {
+                                                                        setModalState(() {
+                                                                          arrivalTime = ((arrivalTimeToFirstPoint * coef[index] + currentTimeUnix)).round();
+                                                                          if (arrivalTime == 0) {
+                                                                            arrivalTime = arrivalTime + index + 1;
+                                                                          }
+                                                                          buttonIndex = index;
+                                                                          print("B $buttonIndex");
+                                                                        });
+                                                                        print(
+                                                                            "arrivalTime $arrivalTime");
+                                                                      },
+                                                                      child: Text(
+                                                                        "${((arrivalTimeToFirstPoint * coef[index]) / 60).round()}",
+                                                                        style:
+                                                                            TextStyle(
+                                                                          color: buttonIndex !=
+                                                                                  index
+                                                                              ? Colors.black
+                                                                              : Color(0xFFFD6F6D),
+                                                                          fontWeight:
+                                                                              FontWeight.bold,
+                                                                          fontSize:
+                                                                              fondTimeSize,
+                                                                        ),
+                                                                      ),
+                                                                      color: Color(
+                                                                          0xFFEEEEEE),
                                                                     ),
-                                                                    color: Color(
-                                                                        0xFFEEEEEE),
-                                                                  ),
-                                                                );
-                                                              }),
+                                                                  );
+                                                                }),
+                                                              ),
                                                             ),
-                                                          ),
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                        .only(
-                                                                    left: 24.0,
-                                                                    right: 24.0,
-                                                                    top: 16.0),
-                                                            child: Container(
-                                                              child: ButtonAnimation(
-                                                                  primaryColor:
-                                                                      Color(
-                                                                          0xFFFD6F6D),
-                                                                  darkPrimaryColor:
-                                                                      Color(
-                                                                          0xFF33353E),
-                                                                  orderFunction:
-                                                                      onStartOrder),
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                          .only(
+                                                                      left: 24.0,
+                                                                      right: 24.0,
+                                                                      top: 16.0),
+                                                              child: Container(
+                                                                child: ButtonAnimation(
+                                                                    primaryColor:
+                                                                        Color(
+                                                                            0xFFFD6F6D),
+                                                                    darkPrimaryColor:
+                                                                        Color(
+                                                                            0xFF33353E),
+                                                                    orderFunction:
+                                                                        onStartOrder),
+                                                              ),
                                                             ),
-                                                          ),
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .only(
-                                                              top: 8.0,
-                                                              left: 24.0,
-                                                              right: 24.0,
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .only(
+                                                                top: 8.0,
+                                                                left: 24.0,
+                                                                right: 24.0,
+                                                              ),
+                                                              child: Container(
+                                                                child: Text(
+                                                                    "Пожалуйста, укажите максимально точное время прибытия к клиенту"),
+                                                              ),
                                                             ),
-                                                            child: Container(
-                                                              child: Text(
-                                                                  "Пожалуйста, укажите максимально точное время прибытия к клиенту"),
-                                                            ),
-                                                          ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
                                                     ),
-                                                  ),
-                                                );
+                                                  );
+                                                });
                                               });
-                                            });
+                                        }
                                       }
                                     }
                                   }
@@ -896,10 +877,9 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   createAlertDialog(
-      BuildContext context, String status, String mes, String buttonState) {
+      BuildContext context, String status, String mes, String buttonState, alertData) {
     print(message);
     int distance;
-    var alertData;
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -941,19 +921,10 @@ class _OrderPageState extends State<OrderPage> {
         actions: [
           FlatButton(
             onPressed: () async {
-              if (initData['order_data'] == null) {
-                alertData = orderDetail;
-              } else {
-                alertData = initData['order_data'];
-              }
-              var answer = await getStatusOrder(
-                  status, alertData['offer']['uuid'], null, distance);
+              var answer = await getStatusOrder(status, alertData['offer']['uuid'], null, distance);
               if (answer == 200) {
-                await deliverInitData();
-                if (deliverStatus == "on_place") {
-                  await getStatusOrder(
-                      'on_the_way', alertData['offer']['uuid'], null, distance);
-                  await deliverInitData();
+                if (status == "on_place") {
+                  await getStatusOrder('on_the_way', alertData['offer']['uuid'], null, distance);
                   setState(() {
                     buttonStatus = buttonState;
                   });
@@ -961,7 +932,6 @@ class _OrderPageState extends State<OrderPage> {
                   print("buttonState $buttonState");
                   await getStatusOrder('order_payment',
                       alertData['offer']['uuid'], null, distance);
-                  await deliverInitData();
                   setState(() {
                     buttonStatus = buttonState;
                   });
@@ -1037,63 +1007,74 @@ class _OrderPageState extends State<OrderPage> {
     }
     switch (deliverStatus) {
       case 'order_start':
-        switchToClient = 'Комментрарий ресторана';
-        orderComment = (dataUse['order']['comment'])
-                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
-            ? dataUse['order']['comment']
-            : null;
-        buttonStatus = 'ПРИБЫЛ К ЗАВЕДЕНИЮ';
+        {
+          switchToClient = 'Комментрарий ресторана';
+          orderComment = (dataUse['order']['comment'])
+              .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+              ? dataUse['order']['comment']
+              : null;
+          buttonStatus = 'ПРИБЫЛ К ЗАВЕДЕНИЮ';
+        }
         break;
       case 'on_place':
-        switchToClient = (dataUse['order']['client']['comment'])
-                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
-            ? "Комментарий клиента:"
-            : switchToClient;
-        orderComment = (dataUse['order']['client']['comment'])
-                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
-            ? dataUse['order']['client']['comment']
-            : null;
-        buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
-        clientVisibility = true;
+        {
+          switchToClient = (dataUse['order']['client']['comment'])
+              .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+              ? "Комментарий клиента:"
+              : switchToClient;
+          orderComment = (dataUse['order']['client']['comment'])
+              .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+              ? dataUse['order']['client']['comment']
+              : null;
+          buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
+          clientVisibility = true;
+        }
         break;
       case 'on_the_way':
-        switchToClient = (dataUse['order']['client']['comment'])
-                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
-            ? "Комментарий клиента:"
-            : switchToClient;
-        orderComment = (dataUse['order']['client']['comment'])
-                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
-            ? dataUse['order']['client']['comment']
-            : null;
-        buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
+        {
+          switchToClient = (dataUse['order']['client']['comment'])
+              .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+              ? "Комментарий клиента:"
+              : switchToClient;
+          orderComment = (dataUse['order']['client']['comment'])
+              .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+              ? dataUse['order']['client']['comment']
+              : null;
+          buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
+        }
         break;
       case 'order_payment':
-        switchToClient = (dataUse['order']['client']['comment'])
-                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
-            ? "Комментарий клиента:"
-            : switchToClient;
-        orderComment = (dataUse['order']['client']['comment'])
-                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
-            ? dataUse['order']['client']['comment']
-            : null;
-        buttonStatus = 'ОТДАЛ ЗАКАЗ';
-        setState(() {
-          deniedCallVisibility = true;
-        });
+        {
+          switchToClient = (dataUse['order']['client']['comment'])
+              .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+              ? "Комментарий клиента:"
+              : switchToClient;
+          orderComment = (dataUse['order']['client']['comment'])
+              .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+              ? dataUse['order']['client']['comment']
+              : null;
+          buttonStatus = 'ОТДАЛ ЗАКАЗ';
+          setState(() {
+            deniedCallVisibility = true;
+          });
+        }
         break;
       default:
-        switchToClient = 'Комментрарий ресторана';
-        orderComment = (dataUse['order']['comment'])
-                .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
-            ? dataUse['order']['comment']
-            : null;
-        buttonStatus = "ПРИНЯТЬ ЗАКАЗ";
+        {
+          switchToClient = 'Комментрарий ресторана';
+          orderComment = (dataUse['order']['comment'])
+              .contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+              ? dataUse['order']['comment']
+              : null;
+          buttonStatus = "ПРИНЯТЬ ЗАКАЗ";
+        }
         break;
     }
   }
 
   @override
   void initState() {
+    orderValue = null;
     deniedCallVisibility = false;
     if (initData['order_data'] == null) {
       getInitData(orderDetail);
