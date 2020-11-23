@@ -257,24 +257,12 @@ class _DeliveryListState extends State<DeliveryList> {
                     if (isSwitched) {
                       await sendLocation();
                       await switchDeliverStatus("online");
-                      if (this.mounted) {
-                        setState(() {
-                          opacity = 1;
-                        });
-                      }
                     } else {
                       await switchDeliverStatus("offline");
-                      if (this.mounted) {
-                        setState(() {
-                          opacity = 0.5;
-                        });
-                      }
                     }
                   } else {
-                    setState(() {
-                      isSwitched = false;
-                      PopUp.showInternetDialog();
-                    });
+                    isSwitched = false;
+                    PopUp.showInternetDialog();
                   }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),
