@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:device_id/device_id.dart';
+import 'package:platform_device_id/platform_device_id.dart';
 import 'package:faem_delivery/deliveryJson/deliver_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/gestures.dart';
@@ -295,7 +295,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                             if (_phoneController.text.length == 16) {
                               phone = "+7${maskTextInputFormatter.getUnmaskedText()}";
                               // print(phone);
-                              deviceId = await DeviceId.getID;
+                              deviceId = await PlatformDeviceId.getDeviceId;
                               // print(deviceId);
                               await loadAuthData(deviceId, phone);
                               if (respCode == 200) {

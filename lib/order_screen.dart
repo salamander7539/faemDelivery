@@ -8,10 +8,11 @@ import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
 import 'package:faem_delivery/deliveryJson/get_init_data.dart';
 import 'package:faem_delivery/deliveryJson/update_status.dart';
+import 'package:faem_delivery/taxi_menu.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
-import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
+
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'Internet/show_pop_up.dart';
@@ -840,9 +841,8 @@ class _OrderPageState extends State<OrderPage> {
                           child: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.95,
                             child: FlatButton(
-                              onPressed: () async {
-                                FlutterOpenWhatsapp.sendSingleMessage(
-                                    "+79891359399", "");
+                              onPressed: ()  {
+                                launchWhatsApp(phone: "+79891359399", message: "");
                               },
                               color: Colors.white,
                               child: Text(

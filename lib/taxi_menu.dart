@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
@@ -9,7 +10,7 @@ import 'package:faem_delivery/main.dart';
 import 'package:faem_delivery/user_information.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'auth_phone_screen.dart';
 
@@ -20,6 +21,7 @@ class TaxiMenu extends StatefulWidget {
 }
 
 class _TaxiMenuState extends State<TaxiMenu> {
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -149,7 +151,7 @@ class _TaxiMenuState extends State<TaxiMenu> {
                     child: FlatButton(
                       onPressed: () async {
                           new Timer.periodic(Duration(seconds: 3), (Timer t) async {});
-                          FlutterOpenWhatsapp.sendSingleMessage("+79891359399", "");
+                          launchWhatsApp(phone: "+79891359399", message: "");
                       },
                       child: Align(
                         alignment: Alignment.centerLeft,
@@ -184,5 +186,24 @@ class _TaxiMenuState extends State<TaxiMenu> {
         ),
       ),
     );
+  }
+}
+
+void launchWhatsApp(
+    {@required String phone,
+      @required String message,
+    }) async {
+  String url() {
+    if (Platform.isIOS) {
+      return "whatsapp://wa.me/$phone/?text=${Uri.parse(message)}";
+    } else {
+      return "whatsapp://send?   phone=$phone&text=${Uri.parse(message)}";
+    }
+  }
+
+  if (await canLaunch(url())) {
+    await launch(url());
+  } else {
+    throw 'Could not launch ${url()}';
   }
 }
