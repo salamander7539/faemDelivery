@@ -18,9 +18,8 @@ Future<HistoryData> getHistoryData() async {
     var jsonResponse = json.decode(response.body);
     historyData = new HistoryData.fromJson(jsonResponse);
     //print('historyData: $jsonResponse');
-    countOfOrders = historyData.countOfCompletedOrders;
-    earningsToday = historyData.earningsToday;
-
+    countOfOrders = historyData.countOfCompletedOrders != null ? historyData.countOfCompletedOrders : 0;
+    earningsToday = historyData.earningsToday != null ? historyData.earningsToday : 0;
   } else {
     print("history: ${response.body}");
   }

@@ -13,7 +13,6 @@ import 'package:faem_delivery/deliveryJson/switch_deliver_status.dart';
 import 'package:faem_delivery/taxi_menu.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -225,8 +224,8 @@ class _DeliveryListState extends State<DeliveryList> {
               Icons.menu,
               color: Colors.black,
             ),
-            onPressed: () async {
-              await getHistoryData();
+            onPressed: ()  {
+              //await getHistoryData();
               Scaffold.of(context).openDrawer();
             },
           );
