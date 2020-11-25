@@ -28,10 +28,10 @@ Future<VerificationData> loadCode(String deviceId, var code) async {
     var jsonResponse = json.decode(response.body);
     verificationData = new VerificationData.fromJson(jsonResponse);
     token = verificationData.token;
-    sharedPreferences.setString('token', token);
+    sharedPreferences.setString('token', verificationData.token);
     status = response.statusCode;
     refToken = verificationData.refreshToken;
-    sharedPreferences.setString('refToken', refToken);
+    sharedPreferences.setString('refToken', verificationData.refreshToken);
   } else {
     status = response.statusCode;
     print('Request failed with status: ${response.statusCode}.');

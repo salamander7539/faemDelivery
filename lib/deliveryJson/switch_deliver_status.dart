@@ -3,6 +3,7 @@ import 'package:faem_delivery/deliveryJson/get_orders.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -11,6 +12,7 @@ import 'DriverStatusData.dart';
 Future<String> switchDeliverStatus(String statusValue) async {
   var deliverValue;
   DriverStatusData driverStatusData;
+  sharedPreferences = await SharedPreferences.getInstance();
   var url = 'https://driver.apis.stage.faem.pro/api/v2/setstate?state=$statusValue';
   var body = json.encode("");
   var response = await http.post(url, body: body, headers: <String, String>{

@@ -1,5 +1,6 @@
 import 'package:faem_delivery/auth_phone_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -11,6 +12,7 @@ Future<dynamic> remindPassword() async {
     "phone": phone
   });
   var url = 'https://driver.apis.stage.faem.pro/api/v2/auth/remind/password';
+  sharedPreferences = await SharedPreferences.getInstance();
   var response = await http.post(url, body: body, headers: <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
     'Authorization': 'Bearer ${sharedPreferences.get('token')}'

@@ -1,5 +1,6 @@
 import 'package:faem_delivery/deliveryJson/DriverData.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -9,6 +10,7 @@ var balance, karma;
 String drivName = '';
 
 Future<DriverData> getDriverData() async {
+  sharedPreferences = await SharedPreferences.getInstance();
   DriverData driverData;
   var url = 'https://driver.apis.stage.faem.pro/api/v2/driverdata';
   var response = await http.get(url, headers: <String, String>{

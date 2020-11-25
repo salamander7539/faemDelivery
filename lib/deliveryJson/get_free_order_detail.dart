@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -8,6 +9,7 @@ var orderDetail;
 List products = [];
 
 Future<dynamic> getDetailOrdersData(var uuid) async {
+  sharedPreferences = await SharedPreferences.getInstance();
   var url = 'https://driver.apis.stage.faem.pro/api/v2/freeorder/$uuid';
   var response = await http.get(url, headers: <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
@@ -19,7 +21,7 @@ Future<dynamic> getDetailOrdersData(var uuid) async {
       products = orderDetail['order']['products_data']['products'];
       print("ORDER ${orderDetail['order']}");
     } else {
-      products = orderDetail['order']['products_data'];
+      products = null;
     }
     //print(response.body);
   } else {

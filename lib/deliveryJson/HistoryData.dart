@@ -7,6 +7,7 @@ import 'dart:convert';
 HistoryData historyDataFromJson(String str) => HistoryData.fromJson(json.decode(str));
 
 String historyDataToJson(HistoryData data) => json.encode(data.toJson());
+List<Order> orders = [];
 
 class HistoryData {
   HistoryData({

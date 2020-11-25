@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -10,6 +11,7 @@ var message, distanceToTarget, stateOrder, orderValue;
 Future<int> getStatusOrder(
     String orderStatus, String offerUuid, int arrivalTime, var distance) async {
   var url = 'https://driver.apis.stage.faem.pro/api/v2/order';
+  sharedPreferences = await SharedPreferences.getInstance();
   var body = json.encode({
     "state": orderStatus,
     "offer_uuid": offerUuid,

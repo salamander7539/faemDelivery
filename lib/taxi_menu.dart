@@ -10,6 +10,7 @@ import 'package:faem_delivery/main.dart';
 import 'package:faem_delivery/user_information.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:launch_review/launch_review.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'auth_phone_screen.dart';
@@ -69,7 +70,7 @@ class _TaxiMenuState extends State<TaxiMenu> {
                         Matrix4.translationValues(
                             -50.0, 0.0, 0.0),
                         child: Text(
-                          'Заработок: $earningsToday ₽',
+                          earningsToday == null ? 'Заработок: 0 ₽' : 'Заработок: $earningsToday ₽',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: Color(0xFF9D9C97)),
                         ),
                       ),
@@ -189,8 +190,8 @@ class _TaxiMenuState extends State<TaxiMenu> {
   }
 }
 
-void launchWhatsApp(
-    {@required String phone,
+void launchWhatsApp({
+      @required String phone,
       @required String message,
     }) async {
   String url() {
@@ -200,10 +201,9 @@ void launchWhatsApp(
       return "whatsapp://send?   phone=$phone&text=${Uri.parse(message)}";
     }
   }
-
   if (await canLaunch(url())) {
     await launch(url());
   } else {
-    throw 'Could not launch ${url()}';
+    LaunchReview.launch(androidAppId: 'com.whatsapp', iOSAppId: '310633997');
   }
 }

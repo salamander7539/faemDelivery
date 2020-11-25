@@ -210,7 +210,7 @@ class _UserInformationState extends State<UserInformation> {
                         child: Container(
                           margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
                           child: Text(
-                            "$countOfOrders",
+                            countOfOrders == null ? '0' : "$countOfOrders",
                             style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF9D9C97), fontSize: 14.0),
                           ),
                         ),

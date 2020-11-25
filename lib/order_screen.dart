@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:connectivity/connectivity.dart';
 import 'package:faem_delivery/animations/button_animation.dart';
 import 'package:faem_delivery/deliveryJson/assign_order.dart';
@@ -12,7 +11,6 @@ import 'package:faem_delivery/taxi_menu.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
-
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'Internet/show_pop_up.dart';
@@ -86,11 +84,10 @@ class _OrderPageState extends State<OrderPage> {
           ),
           onPressed: () async {
             if (dataUse['offer']['uuid'] != null && (orderValue == null || orderValue == 'offer_offered')) {
-              print("${dataUse['offer']['uuid']}");
+              //print("${dataUse['offer']['uuid']}");
               await getStatusOrder("offer_rejected", dataUse['offer']['uuid'], null, null);
               Navigator.pop(context);
             }
-
           },
         ),
         actions: [
@@ -157,6 +154,7 @@ class _OrderPageState extends State<OrderPage> {
               SingleChildScrollView(
                 scrollDirection: Axis.vertical,
                 child: Container(
+                  height: MediaQuery.of(context).size.height * 1.2,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -193,11 +191,7 @@ class _OrderPageState extends State<OrderPage> {
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 6.0, horizontal: 20.0),
                                       child: Text(
-                                        dataUse['order'] != null
-                                            ? (dataUse['order']['tariff']
-                                                    ['payment_type'])
-                                                .toUpperCase()
-                                            : '',
+                                        dataUse['order'] != null ? (dataUse['order']['tariff']['payment_type']).toUpperCase() : '',
                                         style: TextStyle(
                                           fontSize: 11.0,
                                           color: Color(0xFFFD6F6D),
@@ -288,15 +282,12 @@ class _OrderPageState extends State<OrderPage> {
                                         onTap: () async {
                                           final availableMaps =
                                               await MapLauncher.installedMaps;
-                                          print(availableMaps);
+                                          //print(availableMaps);
                                           await availableMaps.first.showMarker(
                                             coords: Coords(
-                                                dataUse['order']['routes'][0]
-                                                    ['lat'],
-                                                dataUse['order']['routes'][0]
-                                                    ['lon']),
-                                            title: dataUse['order']['routes'][0]
-                                                ['value'],
+                                                dataUse['order']['routes'][0]['lat'],
+                                                dataUse['order']['routes'][0]['lon']),
+                                            title: dataUse['order']['routes'][0]['value'],
                                           );
                                         },
                                       ),
@@ -392,7 +383,7 @@ class _OrderPageState extends State<OrderPage> {
                                           onTap: () async {
                                             final availableMaps =
                                                 await MapLauncher.installedMaps;
-                                            print(availableMaps);
+                                            //print(availableMaps);
                                             await availableMaps.first
                                                 .showMarker(
                                               coords: Coords(
@@ -748,10 +739,9 @@ class _OrderPageState extends State<OrderPage> {
                                                                             arrivalTime = arrivalTime + index + 1;
                                                                           }
                                                                           buttonIndex = index;
-                                                                          print("B $buttonIndex");
+                                                                          //print("B $buttonIndex");
                                                                         });
-                                                                        print(
-                                                                            "arrivalTime $arrivalTime");
+                                                                        //print("arrivalTime $arrivalTime");
                                                                       },
                                                                       child: Text(
                                                                         "${((arrivalTimeToFirstPoint * coef[index]) / 60).round()}",
@@ -878,7 +868,7 @@ class _OrderPageState extends State<OrderPage> {
 
   createAlertDialog(
       BuildContext context, String status, String mes, String buttonState, alertData) {
-    print(message);
+    //print(message);
     int distance;
     return showDialog(
       context: context,
@@ -929,7 +919,7 @@ class _OrderPageState extends State<OrderPage> {
                     buttonStatus = buttonState;
                   });
                 } else {
-                  print("buttonState $buttonState");
+                  //print("buttonState $buttonState");
                   await getStatusOrder('order_payment',
                       alertData['offer']['uuid'], null, distance);
                   setState(() {
@@ -972,10 +962,10 @@ class _OrderPageState extends State<OrderPage> {
   bool _switchValue;
 
   getInitData(dataUse) {
-    print('ORDER STATUS: $deliverStatus');
+    //print('ORDER STATUS: $deliverStatus');
     String orderId = dataUse['order']['uuid'];
     currentId = orderId.substring(orderId.length - 4);
-    print(currentId);
+    //print(currentId);
     if (dataUse['order_state'] != null) {
       deliverStatus = dataUse['order_state']['value'];
     }
@@ -997,8 +987,8 @@ class _OrderPageState extends State<OrderPage> {
     } else {
       category = 'заведения';
     }
-    print("ORDER: ${(dataUse['order'])}");
-    print("features: ${(dataUse['order']['features'])}");
+    //print("ORDER: ${(dataUse['order'])}");
+    //print("features: ${(dataUse['order']['features'])}");
     if ((dataUse['order']['features']) == null ||
         (dataUse['order']['features']).isEmpty) {
       feature = '';
@@ -1081,7 +1071,7 @@ class _OrderPageState extends State<OrderPage> {
     } else {
       getInitData(initData['order_data']);
     }
-    print('feature $feature');
+    //print('feature $feature');
     switchToClient = "Комментарий ресторана:";
     super.initState();
     _switchValue = true;

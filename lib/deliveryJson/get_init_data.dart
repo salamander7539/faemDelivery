@@ -10,7 +10,7 @@ var deliverStatus, deliverONState;
 var distanceToFirstPoint, distanceToSecondPoint;
 int responseTime, arrivalTimeToFirstPoint, arrivalTimeToSecondPoint, arrivalUnixToFirstPoint, arrivalUnixToSecondPoint = 0;
 
-Future<int> deliverInitData() async {
+Future<dynamic> deliverInitData() async {
   var url = 'https://driver.apis.stage.faem.pro/api/v2/initdata';
   var body = json.encode("");
   http.Response response = await http.post(url, body: body, headers: <String, String>{
@@ -30,7 +30,7 @@ Future<int> deliverInitData() async {
       if (initData['order_data']['order']['products_data'] != null) {
         products = initData['order_data']['order']['products_data']['products'];
       } else {
-        products = initData['order_data']['order']['products_data'];
+        products = null;
       }
       deliverStatus = initData['order_data']['order_state']['value'];
       int currentUnix = (DateTime.now().millisecondsSinceEpoch / 1000).round();
@@ -41,6 +41,6 @@ Future<int> deliverInitData() async {
     print('Request failed with status: ${response.statusCode}.');
     print(response.body);
   }
-  print("getInit: ${response.statusCode}");
-  return response.statusCode;
+  // print("getInit: ${response.statusCode}");
+  return 200;
 }
