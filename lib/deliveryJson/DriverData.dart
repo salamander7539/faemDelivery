@@ -63,7 +63,7 @@ class DriverData {
   final String comment;
   final String stateName;
   final String car;
-  final int balance;
+  final double balance;
   final int cardBalance;
   final int karma;
   final String color;
@@ -208,7 +208,7 @@ class AvailableService {
 
   final String uuid;
   final String name;
-  final int priceCoefficient;
+  var priceCoefficient;
   final bool freight;
   final bool productDelivery;
   final String comment;
@@ -375,7 +375,6 @@ class Tariff {
     this.name,
     this.comment,
     this.color,
-    this.markups,
     this.rejExp,
     this.commExp,
     this.period,
@@ -392,7 +391,6 @@ class Tariff {
   final String name;
   final String comment;
   final String color;
-  final List<Markup> markups;
   final String rejExp;
   final String commExp;
   final int period;
@@ -409,7 +407,6 @@ class Tariff {
     name: json["name"],
     comment: json["comment"],
     color: json["color"],
-    markups: List<Markup>.from(json["markups"].map((x) => Markup.fromJson(x))),
     rejExp: json["rej_exp"],
     commExp: json["comm_exp"],
     period: json["period"],
@@ -427,7 +424,6 @@ class Tariff {
     "name": name,
     "comment": comment,
     "color": color,
-    "markups": List<dynamic>.from(markups.map((x) => x.toJson())),
     "rej_exp": rejExp,
     "comm_exp": commExp,
     "period": period,

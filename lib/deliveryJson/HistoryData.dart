@@ -22,7 +22,7 @@ class HistoryData {
   final int earningsToday;
   final int countOfCompletedOrders;
   final int commission;
-  final int balance;
+  var balance;
   final int cardBalance;
   final List<Order> orders;
 
