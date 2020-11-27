@@ -63,7 +63,7 @@ class DriverData {
   final String comment;
   final String stateName;
   final String car;
-  final double balance;
+  var balance;
   final int cardBalance;
   final int karma;
   final String color;
