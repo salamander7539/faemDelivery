@@ -218,9 +218,7 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                               sharedPreferences = await SharedPreferences.getInstance();
                               await updateRefreshToken(refToken);
                               if (status == 200) {
-                                setState(() {
-                                  sharedPreferences.setString('token', updateResponse['token']);
-                                });
+                                sharedPreferences.setString('token', updateResponse['token']);
                                 milliseconds = (DateTime.now().millisecondsSinceEpoch / 1000).round();
                                 // print("time: $milliseconds ");
                                 Navigator.pushNamed(context, "/deliveryPage");

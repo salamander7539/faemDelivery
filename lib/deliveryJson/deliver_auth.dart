@@ -20,7 +20,7 @@ Future<AuthData> loadAuthData(String deviceId, String phone) async {
     var jsonResponse = json.decode(response.body);
     print(response.body);
     authData = new AuthData.fromJson(jsonResponse);
-    respCode = response.statusCode;
+    respCode = authData.code;
     respMessage = authData.message;
     if (respMessage == 'Введите пароль из смс сообщения') {
       remindMessage = null;

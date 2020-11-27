@@ -14,6 +14,7 @@ import 'package:launch_review/launch_review.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'auth_phone_screen.dart';
+import 'deliveryJson/DriverData.dart';
 
 class TaxiMenu extends StatefulWidget {
 
@@ -44,8 +45,8 @@ class _TaxiMenuState extends State<TaxiMenu> {
             ),
             FutureBuilder(
               future: getDriverData(),
-              builder: (context,  snapshot) {
-                if (balance != null) {
+              builder: (BuildContext context, AsyncSnapshot<DriverData> snapshot) {
+                if (snapshot.hasData) {
                   return Container(
                     child: ListTile(
                       leading: Transform(
@@ -61,7 +62,7 @@ class _TaxiMenuState extends State<TaxiMenu> {
                         Matrix4.translationValues(
                             -50.0, 0.0, 0.0),
                         child: Text(
-                          '$drivName',
+                          snapshot.data.name,
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0, color: Colors.black),
                         ),
                       ),
