@@ -19,9 +19,10 @@ class Internet{
 }
 
 class PopUp {
-  static showInternetDialog() async {
+  static showInternetDialog(String message) async {
     Fluttertoast.showToast(
-        msg: "Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!",
+        msg: message,
+      // "Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!"
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 1,

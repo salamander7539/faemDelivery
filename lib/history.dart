@@ -78,7 +78,7 @@ class _HistoryListState extends State<HistoryList> {
                     }
                   } else {
                       isSwitched = false;
-                      PopUp.showInternetDialog();
+                      PopUp.showInternetDialog('Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!');
                   }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),

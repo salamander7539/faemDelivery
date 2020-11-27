@@ -13,6 +13,7 @@ import 'package:faem_delivery/deliveryJson/switch_deliver_status.dart';
 import 'package:faem_delivery/taxi_menu.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,7 +40,7 @@ var lon;
 final birthday = DateTime(1967, 10, 12);
 final date2 = DateTime.now();
 final difference = date2.difference(birthday).inSeconds;
-var connectResult = true;
+var connectResult;
 
 class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
   Timer timer;
@@ -57,10 +58,12 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
     subscription = connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
       print(result);
       if (result == ConnectivityResult.wifi || result == ConnectivityResult.mobile)  {
+        getOrdersData();
         setState(() {
           connectResult = true;
           opacity = 1.0;
         });
+        deliverInitData();
         if (initData['driver_state']['value'] == 'offline') {
           setState(() {
             isSwitched = false;
@@ -77,13 +80,13 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
           connectResult = false;
           isSwitched = false;
         });
-        PopUp.showInternetDialog();
+        PopUp.showInternetDialog("Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!");
       }
     });
     new Timer.periodic(fifteenSeconds, (Timer t) async {
       await getLocation();
       await getDriverData();
-      // await getHistoryData();
+      await getHistoryData();
       if (this.mounted) {
         setState(() {});
       }
@@ -222,8 +225,7 @@ class _DeliveryListState extends State<DeliveryList> {
               Icons.menu,
               color: Colors.black,
             ),
-            onPressed: ()  {
-              //await getHistoryData();
+            onPressed: () {
               Scaffold.of(context).openDrawer();
             },
           );
@@ -255,12 +257,23 @@ class _DeliveryListState extends State<DeliveryList> {
                     if (isSwitched) {
                       await sendLocation();
                       await switchDeliverStatus("online");
+                      if (this.mounted) {
+                        setState(() {
+                          opacity = 1;
+                        });
+                      }
                     } else {
                       await switchDeliverStatus("offline");
+                      if (this.mounted) {
+                        setState(() {
+                          opacity = 0.5;
+                        });
+                      }
                     }
                   } else {
-                    isSwitched = false;
-                    PopUp.showInternetDialog();
+                    setState(() {
+                      isSwitched = false;
+                    });
                   }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),
@@ -407,7 +420,7 @@ class _DeliveryListState extends State<DeliveryList> {
                               transform: Matrix4.translationValues(
                                   -15.0, 0.0, 0.0),
                               child: Text(
-                                "${orders[orderIndex]['order']['routes'][0]['street']}, ${orders[orderIndex]['order']['routes'][0]['house']} • ${(orders[orderIndex]['order']['route_way_data']['routes']['properties']['distance'] / 1000).toStringAsFixed(1)}км от вас",
+                                "${orders[orderIndex]['order']['routes'][0]['street']}, ${orders[orderIndex]['order']['routes'][0]['house']} • ${(orders[orderIndex]['offer']['route_to_client']['properties']['distance'] / 1000).toStringAsFixed(1)}км от вас",
                                 style: TextStyle(
                                   color: Color(0xFF878A87),
                                   fontSize: (16.0),
@@ -483,7 +496,7 @@ class _DeliveryListState extends State<DeliveryList> {
       future: getOrdersData(),
       // ignore: missing_return
       builder: (context, AsyncSnapshot snapshot) {
-        // if (connectResult == true) {
+        if (connectResult == true) {
           if (isSwitched && snapshot.hasData) {
             return ListView.builder(
                 itemCount: orders == null ? 0 : orders.length,
@@ -509,9 +522,9 @@ class _DeliveryListState extends State<DeliveryList> {
           } else if (isSwitched && !snapshot.hasData) {
             return _bodyOfflineStatus("На данный момент заказы отсутсвуют", "Ожидайте...");
           }
-        // } else {
-        //   return _bodyOfflineStatus("Подключение отсутсвует", "Проверьте соединение с интернетом");
-        // }
+        } else {
+          return _bodyOfflineStatus("Подключение отсутсвует", "Проверьте соединение с интернетом");
+        }
       },
     );
   }

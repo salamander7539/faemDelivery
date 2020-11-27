@@ -127,7 +127,7 @@ class _OrderPageState extends State<OrderPage> {
                     } else {
                       setState(() {
                         isSwitched = false;
-                        PopUp.showInternetDialog();
+                        PopUp.showInternetDialog('Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!');
                       });
                     }
                   },

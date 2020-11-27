@@ -1,4 +1,3 @@
-import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
 import 'package:faem_delivery/deliveryJson/get_init_data.dart';
 import 'package:faem_delivery/deliveryJson/update_status.dart';
 import 'package:flutter/material.dart';
@@ -67,32 +66,32 @@ class _ButtonAnimationState extends State<ButtonAnimation>
 
     _animation = Tween<double>(begin: 0.0, end: buttonWidth)
         .animate(_animationController)
-          ..addStatusListener((status) async {
+          ..addStatusListener((status) {
             if (status == AnimationStatus.completed) {
-              await getStatusOrder('offer_rejected', orderDetail['offer']['uuid'], arrivalTime, null);
-              Navigator.pop(context);
-              animationComplete = true;
-              barColorOpacity = .6;
-              barColor = Color(0xFF33353E);
-              Navigator.pop(context);
-              deliverStatus = null;
-                // if (deliverStatus == "offer_offered") {
-                //   statusCode = await getStatusOrder('offer_accepted', initData['order_data']['offer']['uuid'], arrivalTime, null,);
-                // } else if (deliverStatus == "offer_accepted") {
-                //   setState(() {
-                //     clientVisibility = true;
-                //   });
-                //   statusCode = await getStatusOrder('order_start', initData['order_data']['offer']['uuid'], null, null);
-                // } else if(deliverStatus == "order_start") {
-                //   setState(() {
-                //     widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
-                //   });
-                //   Navigator.pop(context);
-                // }
-                // setState(() {
-                //   widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
-                // });
-
+              setState(() async {
+                animationComplete = true;
+                barColorOpacity = .6;
+                barColor = Color(0xFF33353E);
+                if (deliverStatus == "offer_offered") {
+                  statusCode = await getStatusOrder('offer_accepted', initData['order_data']['offer']['uuid'], arrivalTime, null,);
+                  await deliverInitData();
+                } else if (deliverStatus == "offer_accepted") {
+                  setState(() {
+                    clientVisibility = true;
+                  });
+                  statusCode = await getStatusOrder('order_start', initData['order_data']['offer']['uuid'], null, null);
+                  await deliverInitData();
+                } else if(deliverStatus == "order_start") {
+                  setState(() {
+                    widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
+                  });
+                  Navigator.pop(context);
+                }
+                setState(() {
+                  widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
+                });
+                Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
+              });
             }
           });
     _scaleAnimationController.forward();

@@ -1,3 +1,4 @@
+import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/auth_phone_screen.dart';
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/tokenData/refresh_token.dart';
@@ -173,6 +174,7 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                         height: 20.0,
                         child: FlatButton(
                           onPressed: () async {
+                            PopUp.showInternetDialog('Ожидайте звонка оператора');
                             await remindPassword();
                           },
                           color: Colors.transparent,
