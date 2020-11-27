@@ -252,6 +252,7 @@ class _UserInformationState extends State<UserInformation> {
                   //             borderSide: BorderSide(color: Color(0xFFECEEEC)),
                   //             borderRadius: BorderRadius.all(Radius.circular(7.0)),
                   //           ),
+
                   //           focusedBorder: OutlineInputBorder(
                   //             borderSide: BorderSide(color: Color(0xFFECEEEC)),
                   //             borderRadius: BorderRadius.all(Radius.circular(7.0)),
