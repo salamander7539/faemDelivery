@@ -40,7 +40,7 @@ var lon;
 final birthday = DateTime(1967, 10, 12);
 final date2 = DateTime.now();
 final difference = date2.difference(birthday).inSeconds;
-var connectResult = true;
+var connectResult;
 
 class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
   Timer timer;
@@ -53,7 +53,7 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
     super.initState();
     isSwitched = false;
     switchDeliverStatus('offline');
-    getLocation();
+    // getLocation();
     connectivity = new Connectivity();
     subscription = connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
       print(result);
@@ -250,19 +250,31 @@ class _DeliveryListState extends State<DeliveryList> {
               child: Switch(
                 value: isSwitched,
                 onChanged: (value) async {
-
-                    if (this.mounted) {
-                      setState(() {
-                        isSwitched = value;
-                      });
-                      if (isSwitched) {
-                        await sendLocation();
-                        await switchDeliverStatus("online");
-                      } else {
-                        await switchDeliverStatus("offline");
+                  if (this.mounted) {
+                    setState(() {
+                      isSwitched = value;
+                    });
+                    if (isSwitched) {
+                      await sendLocation();
+                      await switchDeliverStatus("online");
+                      if (this.mounted) {
+                        setState(() {
+                          opacity = 1;
+                        });
+                      }
+                    } else {
+                      await switchDeliverStatus("offline");
+                      if (this.mounted) {
+                        setState(() {
+                          opacity = 0.5;
+                        });
                       }
                     }
-
+                  } else {
+                    setState(() {
+                      isSwitched = false;
+                    });
+                  }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),
                 activeTrackColor: Color(0xFFAFE14C),
@@ -433,12 +445,14 @@ class _DeliveryListState extends State<DeliveryList> {
                                     Radius.circular(4.0)),
                               ),
                               onPressed: () async {
-                                  var accessCode = await getDetailOrdersData(orders[chosenIndex]['offer']['uuid']);
-                                  if (accessCode == 200) {
-                                    await deliverInitData();
-                                    Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
-                                  }
-
+                                setState(() {
+                                  chosenIndex = orderIndex;
+                                });
+                                var accessCode = await getDetailOrdersData(orders[chosenIndex]['offer']['uuid']);
+                                if (accessCode == 200) {
+                                  await deliverInitData();
+                                  Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
+                                }
                               },
                               child: Padding(
                                 padding:
@@ -482,6 +496,7 @@ class _DeliveryListState extends State<DeliveryList> {
       future: getOrdersData(),
       // ignore: missing_return
       builder: (context, AsyncSnapshot snapshot) {
+        if (connectResult == true) {
           if (isSwitched && snapshot.hasData) {
             return ListView.builder(
                 itemCount: orders == null ? 0 : orders.length,
@@ -507,7 +522,10 @@ class _DeliveryListState extends State<DeliveryList> {
           } else if (isSwitched && !snapshot.hasData) {
             return _bodyOfflineStatus("На данный момент заказы отсутсвуют", "Ожидайте...");
           }
-        },
+        } else {
+          return _bodyOfflineStatus("Подключение отсутсвует", "Проверьте соединение с интернетом");
+        }
+      },
     );
   }
 
