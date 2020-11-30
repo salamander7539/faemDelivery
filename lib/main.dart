@@ -53,36 +53,36 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
     super.initState();
     isSwitched = false;
     switchDeliverStatus('offline');
-    // getLocation();
-    // connectivity = new Connectivity();
-    // subscription = connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
-    //   print(result);
-    //   if (result == ConnectivityResult.wifi || result == ConnectivityResult.mobile)  {
-    //     getOrdersData();
-    //     setState(() {
-    //       connectResult = true;
-    //       opacity = 1.0;
-    //     });
-    //     deliverInitData();
-    //     if (initData['driver_state']['value'] == 'offline') {
-    //       setState(() {
-    //         isSwitched = false;
-    //       });
-    //     } else if (initData['driver_state']['value'] == 'online') {
-    //       print('ONSTATE ${initData['driver_state']['value']}');
-    //       setState(() {
-    //         isSwitched = true;
-    //       });
-    //     }
-    //   } else {
-    //     setState(() {
-    //       opacity = 0.5;
-    //       connectResult = false;
-    //       isSwitched = false;
-    //     });
-    //     PopUp.showInternetDialog("Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!");
-    //   }
-    // });
+    getLocation();
+    connectivity = new Connectivity();
+    subscription = connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+      print(result);
+      if (result == ConnectivityResult.wifi || result == ConnectivityResult.mobile)  {
+        getOrdersData();
+        setState(() {
+          connectResult = true;
+          opacity = 1.0;
+        });
+        deliverInitData();
+        if (initData['driver_state']['value'] == 'offline') {
+          setState(() {
+            isSwitched = false;
+          });
+        } else if (initData['driver_state']['value'] == 'online') {
+          print('ONSTATE ${initData['driver_state']['value']}');
+          setState(() {
+            isSwitched = true;
+          });
+        }
+      } else {
+        setState(() {
+          opacity = 0.5;
+          connectResult = false;
+          isSwitched = false;
+        });
+        PopUp.showInternetDialog("Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!");
+      }
+    });
     new Timer.periodic(fifteenSeconds, (Timer t) async {
       await getLocation();
       await getDriverData();
@@ -250,7 +250,7 @@ class _DeliveryListState extends State<DeliveryList> {
               child: Switch(
                 value: isSwitched,
                 onChanged: (value) async {
-                  if (await Internet.checkConnection()) {
+
                     if (this.mounted) {
                       setState(() {
                         isSwitched = value;
@@ -262,10 +262,7 @@ class _DeliveryListState extends State<DeliveryList> {
                         await switchDeliverStatus("offline");
                       }
                     }
-                  } else {
-                    PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
-                    return _bodyOfflineStatus("Подключение отсутвует", "Проверьте соединение с интернетом");
-                  }
+
                 },
                 inactiveTrackColor: Color(0xFFFF8064),
                 activeTrackColor: Color(0xFFAFE14C),
@@ -436,19 +433,12 @@ class _DeliveryListState extends State<DeliveryList> {
                                     Radius.circular(4.0)),
                               ),
                               onPressed: () async {
-                                if (await Internet.checkConnection()) {
-                                  setState(() {
-                                    chosenIndex = orderIndex;
-                                  });
                                   var accessCode = await getDetailOrdersData(orders[chosenIndex]['offer']['uuid']);
                                   if (accessCode == 200) {
                                     await deliverInitData();
                                     Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
                                   }
-                                } else {
-                                  PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
-                                  return _bodyOfflineStatus("Подключение отсутвует", "Проверьте соединение с интернетом");
-                                }
+
                               },
                               child: Padding(
                                 padding:

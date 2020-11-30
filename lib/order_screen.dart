@@ -83,23 +83,11 @@ class _OrderPageState extends State<OrderPage> {
             color: Colors.black,
           ),
           onPressed: () async {
-            if (await Internet.checkConnection()) {
-              if (opacity != 1) {
-                setState(() {
-                  opacity = 1;
-                });
-              }
               if (dataUse['offer']['uuid'] != null && (orderValue == null || orderValue == 'offer_offered')) {
                 //print("${dataUse['offer']['uuid']}");
                 await getStatusOrder("offer_rejected", dataUse['offer']['uuid'], null, null);
                 Navigator.pop(context);
               }
-            } else {
-              setState(() {
-                opacity = 0.5;
-              });
-              PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
-            }
           },
         ),
         actions: [
@@ -116,7 +104,6 @@ class _OrderPageState extends State<OrderPage> {
                 child: Switch(
                   value: isSwitched,
                   onChanged: (value) async {
-                    if (await Internet.checkConnection()) {
                       if (this.mounted && deliverStatus == null) {
                         setState(() {
                           isSwitched = value;
@@ -144,13 +131,7 @@ class _OrderPageState extends State<OrderPage> {
                         });
                         PopUp.showInternetDialog('Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!');
                       }
-                    } else {
-                      setState(() {
-                        opacity = 0.5;
-                        isSwitched = false;
-                      });
-                      PopUp.showInternetDialog('Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!');
-                    }
+
                   },
                   inactiveTrackColor: Color(0xFFFF8064),
                   activeTrackColor: Color(0xFFAFE14C),
