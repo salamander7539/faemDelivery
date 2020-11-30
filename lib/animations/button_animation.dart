@@ -72,26 +72,9 @@ class _ButtonAnimationState extends State<ButtonAnimation>
                 animationComplete = true;
                 barColorOpacity = .6;
                 barColor = Color(0xFF33353E);
-                if (deliverStatus == "offer_offered") {
-                  statusCode = await getStatusOrder('offer_accepted', initData['order_data']['offer']['uuid'], arrivalTime, null,);
-                  await deliverInitData();
-                } else if (deliverStatus == "offer_accepted") {
-                  setState(() {
-                    clientVisibility = true;
-                  });
-                  statusCode = await getStatusOrder('order_start', initData['order_data']['offer']['uuid'], null, null);
-                  await deliverInitData();
-                } else if(deliverStatus == "order_start") {
-                  setState(() {
-                    widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
-                  });
-                  Navigator.pop(context);
-                }
-                setState(() {
-                  widget.orderFunction('ПРИБЫЛ К ЗАВЕДЕНИЮ');
-                });
-                Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage()));
               });
+              Navigator.pop(context);
+              Navigator.pop(context);
             }
           });
     _scaleAnimationController.forward();

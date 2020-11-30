@@ -83,10 +83,22 @@ class _OrderPageState extends State<OrderPage> {
             color: Colors.black,
           ),
           onPressed: () async {
-            if (dataUse['offer']['uuid'] != null && (orderValue == null || orderValue == 'offer_offered')) {
-              //print("${dataUse['offer']['uuid']}");
-              await getStatusOrder("offer_rejected", dataUse['offer']['uuid'], null, null);
-              Navigator.pop(context);
+            if (await Internet.checkConnection()) {
+              if (opacity != 1) {
+                setState(() {
+                  opacity = 1;
+                });
+              }
+              if (dataUse['offer']['uuid'] != null && (orderValue == null || orderValue == 'offer_offered')) {
+                //print("${dataUse['offer']['uuid']}");
+                await getStatusOrder("offer_rejected", dataUse['offer']['uuid'], null, null);
+                Navigator.pop(context);
+              }
+            } else {
+              setState(() {
+                opacity = 0.5;
+              });
+              PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
             }
           },
         ),
@@ -104,37 +116,45 @@ class _OrderPageState extends State<OrderPage> {
                 child: Switch(
                   value: isSwitched,
                   onChanged: (value) async {
-                    if (this.mounted && deliverStatus == null) {
-                      setState(() {
-                        isSwitched = value;
-                      });
-                      if (isSwitched) {
-                        await sendLocation();
-                        await switchDeliverStatus("online");
-                        if (this.mounted) {
-                          setState(() {
-                            opacity = 1;
-                          });
+                    if (await Internet.checkConnection()) {
+                      if (this.mounted && deliverStatus == null) {
+                        setState(() {
+                          isSwitched = value;
+                        });
+                        if (isSwitched) {
+                          await sendLocation();
+                          await switchDeliverStatus("online");
+                          if (this.mounted) {
+                            setState(() {
+                              opacity = 1;
+                            });
+                          }
+                        } else {
+                          await switchDeliverStatus("offline");
+                          if (this.mounted) {
+                            setState(() {
+                              opacity = 0.5;
+                            });
+                          }
                         }
                       } else {
-                        await switchDeliverStatus("offline");
-                        if (this.mounted) {
-                          setState(() {
-                            opacity = 0.5;
-                          });
-                        }
+                        setState(() {
+                          opacity = 0.5;
+                          isSwitched = false;
+                        });
+                        PopUp.showInternetDialog('Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!');
                       }
                     } else {
                       setState(() {
+                        opacity = 0.5;
                         isSwitched = false;
-                        PopUp.showInternetDialog('Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!');
                       });
+                      PopUp.showInternetDialog('Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!');
                     }
                   },
                   inactiveTrackColor: Color(0xFFFF8064),
                   activeTrackColor: Color(0xFFAFE14C),
                   activeColor: Colors.white,
-
                 ),
               ),
             ),
@@ -233,8 +253,7 @@ class _OrderPageState extends State<OrderPage> {
                                       ),
                                     ),
                                     Container(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.8,
+                                      width: MediaQuery.of(context).size.width * 0.8,
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -444,7 +463,12 @@ class _OrderPageState extends State<OrderPage> {
                                               const EdgeInsets.only(right: 3.5),
                                           child: IconButton(
                                             onPressed: () async {
-                                              await callClient();
+                                              bool okCall = await callClient();
+                                              if (okCall) {
+                                                PopUp.showInternetDialog('Соединяю вас с клиентом\nОжидайте...');
+                                              } else {
+                                                PopUp.showInternetDialog('Попытка соедить вас с клиентом провалилась\nПопробуйте снова через минуту...');
+                                              }
                                             },
                                             icon: Icon(Icons.call),
                                           ),

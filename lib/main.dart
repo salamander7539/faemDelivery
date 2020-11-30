@@ -40,7 +40,7 @@ var lon;
 final birthday = DateTime(1967, 10, 12);
 final date2 = DateTime.now();
 final difference = date2.difference(birthday).inSeconds;
-var connectResult;
+var connectResult = true;
 
 class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
   Timer timer;
@@ -250,30 +250,21 @@ class _DeliveryListState extends State<DeliveryList> {
               child: Switch(
                 value: isSwitched,
                 onChanged: (value) async {
-                  if (this.mounted) {
-                    setState(() {
-                      isSwitched = value;
-                    });
-                    if (isSwitched) {
-                      await sendLocation();
-                      await switchDeliverStatus("online");
-                      if (this.mounted) {
-                        setState(() {
-                          opacity = 1;
-                        });
-                      }
-                    } else {
-                      await switchDeliverStatus("offline");
-                      if (this.mounted) {
-                        setState(() {
-                          opacity = 0.5;
-                        });
+                  if (await Internet.checkConnection()) {
+                    if (this.mounted) {
+                      setState(() {
+                        isSwitched = value;
+                      });
+                      if (isSwitched) {
+                        await sendLocation();
+                        await switchDeliverStatus("online");
+                      } else {
+                        await switchDeliverStatus("offline");
                       }
                     }
                   } else {
-                    setState(() {
-                      isSwitched = false;
-                    });
+                    PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
+                    return _bodyOfflineStatus("Подключение отсутвует", "Проверьте соединение с интернетом");
                   }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),
@@ -445,13 +436,18 @@ class _DeliveryListState extends State<DeliveryList> {
                                     Radius.circular(4.0)),
                               ),
                               onPressed: () async {
-                                setState(() {
-                                  chosenIndex = orderIndex;
-                                });
-                                var accessCode = await getDetailOrdersData(orders[chosenIndex]['offer']['uuid']);
-                                if (accessCode == 200) {
-                                  await deliverInitData();
-                                  Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
+                                if (await Internet.checkConnection()) {
+                                  setState(() {
+                                    chosenIndex = orderIndex;
+                                  });
+                                  var accessCode = await getDetailOrdersData(orders[chosenIndex]['offer']['uuid']);
+                                  if (accessCode == 200) {
+                                    await deliverInitData();
+                                    Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
+                                  }
+                                } else {
+                                  PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
+                                  return _bodyOfflineStatus("Подключение отсутвует", "Проверьте соединение с интернетом");
                                 }
                               },
                               child: Padding(

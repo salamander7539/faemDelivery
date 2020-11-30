@@ -4,7 +4,8 @@ import 'dart:async';
 
 import 'deliver_verification.dart';
 
-Future<dynamic> callStore() async {
+Future<bool> callStore() async {
+  bool ok;
   sharedPreferences = await SharedPreferences.getInstance();
   var url = 'https://driver.apis.stage.faem.pro/api/v2/call/store';
   var response = await http.get(url, headers: <String, String>{
@@ -12,10 +13,11 @@ Future<dynamic> callStore() async {
     'Authorization': 'Bearer ${sharedPreferences.get('token')}'
   });
   if (response.statusCode == 200) {
-    print(response.body);
+    ok = true;
   } else {
+    ok = false;
     print("Error order with code ${response.statusCode}");
     print(response.body);
   }
-  return response.statusCode;
+  return ok;
 }
