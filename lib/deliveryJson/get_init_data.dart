@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -11,6 +12,7 @@ var distanceToFirstPoint, distanceToSecondPoint;
 int responseTime, arrivalTimeToFirstPoint, arrivalTimeToSecondPoint, arrivalUnixToFirstPoint, arrivalUnixToSecondPoint = 0;
 
 Future<dynamic> deliverInitData() async {
+  sharedPreferences = await SharedPreferences.getInstance();
   var url = 'https://driver.apis.stage.faem.pro/api/v2/initdata';
   var body = json.encode("");
   http.Response response = await http.post(url, body: body, headers: <String, String>{
@@ -19,7 +21,7 @@ Future<dynamic> deliverInitData() async {
   });
   if (response.statusCode == 200) {
     initData = json.decode(response.body);
-    //print('InitData: ${response.body}');
+    // print('InitData: ${response.body}');
     deliverONState = initData['driver_state']['value'];
     if (initData['order_data'] != null) {
       var responseUnix = initData['order_data']['offer']['response_time'];

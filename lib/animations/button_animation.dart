@@ -1,5 +1,8 @@
+import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
 import 'package:faem_delivery/deliveryJson/get_init_data.dart';
+import 'package:faem_delivery/deliveryJson/switch_deliver_status.dart';
 import 'package:faem_delivery/deliveryJson/update_status.dart';
+import 'package:faem_delivery/main.dart';
 import 'package:flutter/material.dart';
 import '../order_screen.dart';
 
@@ -66,15 +69,20 @@ class _ButtonAnimationState extends State<ButtonAnimation>
 
     _animation = Tween<double>(begin: 0.0, end: buttonWidth)
         .animate(_animationController)
-          ..addStatusListener((status) {
+          ..addStatusListener((status) async {
             if (status == AnimationStatus.completed) {
-              setState(() async {
+              setState(() {
                 animationComplete = true;
                 barColorOpacity = .6;
                 barColor = Color(0xFF33353E);
+                deliverStatus = null;
+                isSwitched = false;
               });
+              await getStatusOrder("offer_rejected", orderDetail['offer']['uuid'], null, null);
+              await switchDeliverStatus('offline');
               Navigator.pop(context);
               Navigator.pop(context);
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryList()));
             }
           });
     _scaleAnimationController.forward();

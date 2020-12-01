@@ -94,7 +94,7 @@ class DriverData {
     photocontrolData: json["photocontrol_data"],
     uuid: json["uuid"],
     name: json["name"],
-    paymentTypes: List<String>.from(json["payment_types"].map((x) => x)),
+    paymentTypes: json["payment_types"] == null ? null : List<String>.from(json["payment_types"].map((x) => x)),
     phone: json["phone"],
     comment: json["comment"],
     stateName: json["state_name"],
