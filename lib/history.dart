@@ -98,111 +98,120 @@ class _HistoryListState extends State<HistoryList> {
           future: getHistoryData(),
           // ignore: missing_return
           builder: (BuildContext context, AsyncSnapshot<HistoryData> snapshot) {
-            if (snapshot.hasData && countOfOrders > 0) {
-              return ListView.builder(
-                itemCount: countOfOrders == 0 ? 0 : countOfOrders,
-                itemBuilder: (context, index) {
-                  DateTime dateString = DateTime.parse("${snapshot.data.orders[index].createdAt}");
-                  var plusThreeHours = dateString.add(new Duration(hours: 3));
-                  String cancelTime = DateFormat("hh:mm:ss").format(plusThreeHours);
-                  return Container(
-                    margin: EdgeInsets.only(top: 10.0, left: 17.0, right: 17.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Color(0xFFECEEEC)),
-                      borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                    ),
-                    child: ListTile(
-                      title: Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Container(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: Container(
-                                  width: 18.0,
-                                  height: 19.0,
-                                  child: Image.asset(
-                                    "images/icons/restaurant_icon.png",
-                                    fit: BoxFit.fill,
+            if (snapshot.connectionState == ConnectionState.done) {
+              if (snapshot.hasData && countOfOrders > 0) {
+                return ListView.builder(
+                  itemCount: countOfOrders == 0 ? 0 : countOfOrders,
+                  itemBuilder: (context, index) {
+                    DateTime dateString = DateTime.parse("${snapshot.data.orders[index].createdAt}");
+                    var plusThreeHours = dateString.add(new Duration(hours: 3));
+                    String cancelTime = DateFormat("hh:mm:ss").format(plusThreeHours);
+                    return Container(
+                      margin: EdgeInsets.only(top: 10.0, left: 17.0, right: 17.0),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Color(0xFFECEEEC)),
+                        borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                      ),
+                      child: ListTile(
+                        title: Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Container(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Container(
+                                    width: 18.0,
+                                    height: 19.0,
+                                    child: Image.asset(
+                                      "images/icons/restaurant_icon.png",
+                                      fit: BoxFit.fill,
+                                    ),
                                   ),
                                 ),
-                              ),
+                                Container(
+                                  width: MediaQuery.of(context).size.width * 0.75,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "${snapshot.data.orders[index].routes[0].value}",
+                                    // historyData['orders'][index]['routes'][0]['value']
+                                        style: TextStyle(
+                                          fontSize: 24.0,
+                                          fontWeight: FontWeight.bold,
+                                          height: 1,
+                                          fontFamily: "UniNeue",
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        subtitle: Container(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
                               Container(
-                                width: MediaQuery.of(context).size.width * 0.75,
                                 child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${snapshot.data.orders[index].routes[0].value}",
-                                  // historyData['orders'][index]['routes'][0]['value']
+                                      '${snapshot.data.orders[index].routes[0].street}, ${snapshot.data.orders[index].routes[0].house} • $cancelTime',
+                                      // "${historyData['order']['routes'][0]['street']}, ${historyData['order']['routes'][0]['house']} • ",
                                       style: TextStyle(
-                                        fontSize: 24.0,
+                                        color: Colors.black,
+                                        fontSize: (16.0),
+                                        fontFamily: 'UniNeue',
                                         fontWeight: FontWeight.bold,
-                                        height: 1,
-                                        fontFamily: "UniNeue",
                                       ),
                                     ),
                                   ],
+                                ),
+                              ),
+                              Transform(
+                                transform: Matrix4.translationValues(0.0, 0.0, 0.0),
+                                child: Text(
+                                  '${snapshot.data.orders[index].tariff.totalPrice}₽',
+                                  // historyData['orders'][index]['tariff']['total_price']
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                      subtitle: Container(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    '${snapshot.data.orders[index].routes[0].street}, ${snapshot.data.orders[index].routes[0].house} • $cancelTime',
-                                    // "${historyData['order']['routes'][0]['street']}, ${historyData['order']['routes'][0]['house']} • ",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: (16.0),
-                                      fontFamily: 'UniNeue',
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Transform(
-                              transform: Matrix4.translationValues(0.0, 0.0, 0.0),
-                              child: Text(
-                                '${snapshot.data.orders[index].tariff.totalPrice}₽',
-                                // historyData['orders'][index]['tariff']['total_price']
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 14.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                    );
+                  },
+                );
+              } else {
+                return Container(
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 4.0, top: 80.0, right: 8.0,),
+                    child: Text('Вы пока не выполнили ни одного заказа',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 40.0,
                       ),
                     ),
-                  );
-                },
-              );
+                  ),
+                );
+              }
             } else {
               return Container(
                 color: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8.0, top: 80.0),
-                  child: Text('Вы пока не выполнили ни одного заказа',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 40.0,
-                    ),
-                  ),
+                child: Center(
+                  child: CircularProgressIndicator(),
                 ),
               );
             }

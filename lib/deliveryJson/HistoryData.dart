@@ -28,7 +28,7 @@ class HistoryData {
     commission: json["commission"],
     balance: json["balance"],
     cardBalance: json["card_balance"],
-    orders: List<Order>.from(json["orders"].map((x) => Order.fromJson(x))),
+    orders: json["orders"] == null ? null : List<Order>.from(json["orders"].map((x) => Order.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {

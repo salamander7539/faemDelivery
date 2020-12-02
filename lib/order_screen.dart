@@ -38,6 +38,7 @@ class _OrderPageState extends State<OrderPage> {
   var dataUse;
   var connectivity;
   double opacity = 1.0;
+  bool switchEnable = false;
   StreamSubscription<ConnectivityResult> subscription;
 
   onStartOrder(newStatus) {
@@ -102,41 +103,64 @@ class _OrderPageState extends State<OrderPage> {
                     setState(() => _switchValue = !_switchValue);
                   }
                 },
-                child: Switch(
-                  value: isSwitched,
-                  onChanged: (value) async {
-                      if (this.mounted && deliverStatus == null) {
-                        setState(() {
-                          isSwitched = value;
-                        });
-                        if (isSwitched) {
-                          await sendLocation();
-                          await switchDeliverStatus("online");
-                          if (this.mounted) {
+                child: AbsorbPointer(
+                  absorbing: switchEnable,
+                  ignoringSemantics: switchEnable,
+                  child: Switch(
+                    value: isSwitched,
+                    onChanged: (value) async {
+                        if (await Internet.checkConnection()) {
+                          if(opacity != 1) {
                             setState(() {
                               opacity = 1;
+                              isSwitched = true;
                             });
+                          }
+                          if (this.mounted && deliverStatus == null) {
+                            setState(() {
+                               switchEnable = false;
+                            });
+                            if (isSwitched == false) {
+                              setState(() {
+                                isSwitched = true;
+                              });
+                            } else {
+                              isSwitched = isSwitched;
+                            }
+                            if (isSwitched) {
+                              await sendLocation();
+                              await switchDeliverStatus("online");
+                              if (this.mounted) {
+                                setState(() {
+                                  opacity = 1;
+                                });
+                              }
+                            } else {
+                              await switchDeliverStatus("offline");
+                              if (this.mounted) {
+                                setState(() {
+                                  opacity = 0.5;
+                                });
+                              }
+                            }
+                          } else {
+                            setState(() {
+                              switchEnable = true;
+                            });
+                            PopUp.showInternetDialog('Во время выполнения заказа, вы не можете перейти в оффлайн');
                           }
                         } else {
-                          await switchDeliverStatus("offline");
-                          if (this.mounted) {
-                            setState(() {
-                              opacity = 0.5;
-                            });
-                          }
+                          setState(() {
+                            isSwitched = false;
+                            opacity = 0.5;
+                          });
+                          PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
                         }
-                      } else {
-                        setState(() {
-                          opacity = 0.5;
-                          isSwitched = false;
-                        });
-                        PopUp.showInternetDialog('Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!');
-                      }
-
-                  },
-                  inactiveTrackColor: Color(0xFFFF8064),
-                  activeTrackColor: Color(0xFFAFE14C),
-                  activeColor: Colors.white,
+                    },
+                    inactiveTrackColor: Color(0xFFFF8064),
+                    activeTrackColor: Color(0xFFAFE14C),
+                    activeColor: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -630,19 +654,11 @@ class _OrderPageState extends State<OrderPage> {
                                           dataUse['offer']['uuid'], null, null);
                                       setState(()  {
                                         clientVisibility = true;
-                                        switchToClient = (dataUse['order']
-                                                    ['client']['comment'])
-                                                .contains(new RegExp(
-                                                    r'[A-Za-z0-9а-яА-Я]'))
+                                        switchToClient = (dataUse['order']['client']['comment']).contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
                                             ? "Комментарий клиента:"
                                             : switchToClient;
-                                        orderComment = (dataUse['order']['client']
-                                                    ['comment'])
-                                                .contains(new RegExp(
-                                                    r'[A-Za-z0-9а-яА-Я]'))
-                                            ? dataUse['order']['client']
-                                                ['comment']
-                                            : null;
+                                        orderComment = (dataUse['order']['client']['comment']).contains(new RegExp(r'[A-Za-z0-9а-яА-Я]'))
+                                            ? dataUse['order']['client']['comment'] : null;
                                         buttonStatus = 'ПРИБЫЛ К КЛИЕНТУ';
                                       });
                                     } else if (statusCode == 406) {
@@ -674,7 +690,6 @@ class _OrderPageState extends State<OrderPage> {
                                         deniedCallVisibility = true;
                                       });
                                       // deliverStatus = dataUse['order_state']['value'];
-
                                     } else if (statusCode == 406) {
                                       createAlertDialog(context, 'order_payment',
                                           message, 'ОТДАЛ ЗАКАЗ', dataUse);
@@ -716,24 +731,15 @@ class _OrderPageState extends State<OrderPage> {
                                                           const EdgeInsets.only(
                                                               top: 8.0),
                                                       child: Container(
-                                                        height:
-                                                            MediaQuery.of(context)
-                                                                    .size
-                                                                    .height *
-                                                                .275,
+                                                        height: MediaQuery.of(context).size.height * .275,
                                                         child: Visibility(
                                                           child: Column(
                                                             children: [
                                                               Padding(
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .all(8.0),
+                                                                padding: const EdgeInsets.all(8.0),
                                                                 child: Wrap(
-                                                                  direction: Axis
-                                                                      .horizontal,
-                                                                  children:
-                                                                      List.generate(5,
-                                                                          (index) {
+                                                                  direction: Axis.horizontal,
+                                                                  children: List.generate(5, (index) {
                                                                     return Container(
                                                                       width: MediaQuery.of(context).size.width * .16,
                                                                       height: MediaQuery.of(context).size.width * .16,
@@ -788,27 +794,20 @@ class _OrderPageState extends State<OrderPage> {
                                                               ),
                                                               Padding(
                                                                 padding:
-                                                                    const EdgeInsets
-                                                                            .only(
+                                                                    const EdgeInsets.only(
                                                                         left: 24.0,
                                                                         right: 24.0,
                                                                         top: 16.0),
                                                                 child: Container(
                                                                   child: ButtonAnimation(
-                                                                      primaryColor:
-                                                                          Color(
-                                                                              0xFFFD6F6D),
-                                                                      darkPrimaryColor:
-                                                                          Color(
-                                                                              0xFF33353E),
-                                                                      orderFunction:
-                                                                          onStartOrder),
+                                                                      primaryColor: Color(0xFFFD6F6D),
+                                                                      darkPrimaryColor: Color(0xFF33353E),
+                                                                      orderFunction: onStartOrder
+                                                                  ),
                                                                 ),
                                                               ),
                                                               Padding(
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .only(
+                                                                padding: const EdgeInsets.only(
                                                                   top: 8.0,
                                                                   left: 24.0,
                                                                   right: 24.0,
@@ -906,8 +905,7 @@ class _OrderPageState extends State<OrderPage> {
     });
   }
 
-  createAlertDialog(
-      BuildContext context, String status, String mes, String buttonState, alertData) {
+  createAlertDialog(BuildContext context, String status, String mes, String buttonState, alertData) {
     //print(message);
     int distance;
     return showDialog(

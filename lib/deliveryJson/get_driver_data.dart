@@ -11,7 +11,6 @@ import 'deliver_verification.dart';
 Future<DriverData> getDriverData() async {
   sharedPreferences = await SharedPreferences.getInstance();
   DriverData driverData;
-  var statusValue;
   var url = 'https://driver.apis.stage.faem.pro/api/v2/driverdata';
   var response = await http.get(url, headers: <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',

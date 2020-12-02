@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:faem_delivery/Internet/check_connection.dart';
 import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
@@ -79,9 +80,24 @@ class _TaxiMenuState extends State<TaxiMenu> {
                   );
                 } else {
                   return Container(
-                    margin: EdgeInsets.only(left: 16.0),
-                    child: CircularProgressIndicator(
-                      backgroundColor: Color(0xFFFD6F6D),
+                    child: ListTile(
+                      leading: Transform(
+                        transform:
+                        Matrix4.translationValues(-25.0, 0.0, 0.0),
+                        child: CircleAvatar(
+                          radius: 54.0,
+                          child: Image.asset('images/icons/deliver_icon.png'),
+                        ),
+                      ),
+                      title: Transform(
+                        transform:
+                        Matrix4.translationValues(
+                            -50.0, 0.0, 0.0),
+                        child: Text(
+                          "Ожидайте...",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0, color: Colors.black),
+                        ),
+                      ),
                     ),
                   );
                 }
@@ -94,11 +110,15 @@ class _TaxiMenuState extends State<TaxiMenu> {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () async {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => UserInformation()),
-                          );
+                          if (await Internet.checkConnection()) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => UserInformation()),
+                            );
+                          } else {
+                            PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
+                          }
                       },
                       child: Container(
                         child: Transform(
@@ -123,11 +143,15 @@ class _TaxiMenuState extends State<TaxiMenu> {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () async {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => HistoryList()),
-                          );
+                          if (await Internet.checkConnection()) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => HistoryList()),
+                            );
+                          } else {
+                            PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
+                          }
                       },
                       child: Container(
                         child: Transform(
@@ -152,8 +176,12 @@ class _TaxiMenuState extends State<TaxiMenu> {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () async {
-                          new Timer.periodic(Duration(seconds: 3), (Timer t) async {});
-                          launchWhatsApp(phone: "+79891359399", message: "");
+                          if (await Internet.checkConnection()) {
+                            new Timer.periodic(Duration(seconds: 3), (Timer t) async {});
+                            launchWhatsApp(phone: "+79891359399", message: "");
+                          } else {
+                            PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
+                          }
                       },
                       child: Align(
                         alignment: Alignment.centerLeft,
@@ -168,9 +196,13 @@ class _TaxiMenuState extends State<TaxiMenu> {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: () async {
-                          await switchDeliverStatus('offline');
-                          sharedPreferences.clear();
-                          Navigator.push(context, new MaterialPageRoute(builder: (context) => AuthPhoneScreen()));
+                          if (await Internet.checkConnection()) {
+                            await switchDeliverStatus('offline');
+                            sharedPreferences.clear();
+                            Navigator.push(context, new MaterialPageRoute(builder: (context) => AuthPhoneScreen()));
+                          } else {
+                            PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
+                          }
                       },
                       child: Align(
                         alignment: Alignment.centerLeft,

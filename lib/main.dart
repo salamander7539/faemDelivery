@@ -17,6 +17,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'Internet/check_connection.dart';
 import 'deliveryJson/get_orders.dart';
 
 import 'order_screen.dart';
@@ -40,7 +41,7 @@ var lon;
 final birthday = DateTime(1967, 10, 12);
 final date2 = DateTime.now();
 final difference = date2.difference(birthday).inSeconds;
-var connectResult;
+var connectResult = true;
 
 class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
   Timer timer;
@@ -54,35 +55,35 @@ class _DeliveryAppState extends State<DeliveryApp> with WidgetsBindingObserver {
     isSwitched = false;
     switchDeliverStatus('offline');
     // getLocation();
-    connectivity = new Connectivity();
-    subscription = connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
-      print(result);
-      if (result == ConnectivityResult.wifi || result == ConnectivityResult.mobile)  {
-        getOrdersData();
-        setState(() {
-          connectResult = true;
-          opacity = 1.0;
-        });
-        deliverInitData();
-        if (initData['driver_state']['value'] == 'offline') {
-          setState(() {
-            isSwitched = false;
-          });
-        } else if (initData['driver_state']['value'] == 'online') {
-          print('ONSTATE ${initData['driver_state']['value']}');
-          setState(() {
-            isSwitched = true;
-          });
-        }
-      } else {
-        setState(() {
-          opacity = 0.5;
-          connectResult = false;
-          isSwitched = false;
-        });
-        PopUp.showInternetDialog("Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!");
-      }
-    });
+    // connectivity = new Connectivity();
+    // subscription = connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+    //   print(result);
+    //   if (result == ConnectivityResult.wifi || result == ConnectivityResult.mobile)  {
+    //     getOrdersData();
+    //     setState(() {
+    //       connectResult = true;
+    //       opacity = 1.0;
+    //     });
+    //     deliverInitData();
+    //     if (initData['driver_state']['value'] == 'offline') {
+    //       setState(() {
+    //         isSwitched = false;
+    //       });
+    //     } else if (initData['driver_state']['value'] == 'online') {
+    //       print('ONSTATE ${initData['driver_state']['value']}');
+    //       setState(() {
+    //         isSwitched = true;
+    //       });
+    //     }
+    //   } else {
+    //     setState(() {
+    //       opacity = 0.5;
+    //       connectResult = false;
+    //       isSwitched = false;
+    //     });
+    //     PopUp.showInternetDialog("Ошибка подключения к интернету! \nПроверьте ваше интернет-соединение!");
+    //   }
+    // });
     new Timer.periodic(fifteenSeconds, (Timer t) async {
       await getLocation();
       await getDriverData();
@@ -250,30 +251,21 @@ class _DeliveryListState extends State<DeliveryList> {
               child: Switch(
                 value: isSwitched,
                 onChanged: (value) async {
-                  if (this.mounted) {
-                    setState(() {
-                      isSwitched = value;
-                    });
-                    if (isSwitched) {
-                      await sendLocation();
-                      await switchDeliverStatus("online");
-                      if (this.mounted) {
-                        setState(() {
-                          opacity = 1;
-                        });
-                      }
-                    } else {
-                      await switchDeliverStatus("offline");
-                      if (this.mounted) {
-                        setState(() {
-                          opacity = 0.5;
-                        });
+                  if (await Internet.checkConnection()) {
+                    if (this.mounted) {
+                      setState(() {
+                        isSwitched = value;
+                      });
+                      if (isSwitched) {
+                        await sendLocation();
+                        await switchDeliverStatus("online");
+                      } else {
+                        await switchDeliverStatus("offline");
                       }
                     }
                   } else {
-                    setState(() {
-                      isSwitched = false;
-                    });
+                    PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
+                    return _bodyOfflineStatus("Подключение отсутвует", "Проверьте соединение с интернетом");
                   }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),
@@ -445,13 +437,18 @@ class _DeliveryListState extends State<DeliveryList> {
                                     Radius.circular(4.0)),
                               ),
                               onPressed: () async {
-                                setState(() {
-                                  chosenIndex = orderIndex;
-                                });
-                                var accessCode = await getDetailOrdersData(orders[chosenIndex]['offer']['uuid']);
-                                if (accessCode == 200) {
-                                  await deliverInitData();
-                                  Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
+                                if (await Internet.checkConnection()) {
+                                  setState(() {
+                                    chosenIndex = orderIndex;
+                                  });
+                                  var accessCode = await getDetailOrdersData(orders[chosenIndex]['offer']['uuid']);
+                                  if (accessCode == 200) {
+                                    await deliverInitData();
+                                    Navigator.push(context, new MaterialPageRoute(builder: (context) => OrderPage()));
+                                  }
+                                } else {
+                                  PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
+                                  return _bodyOfflineStatus("Подключение отсутвует", "Проверьте соединение с интернетом");
                                 }
                               },
                               child: Padding(
@@ -496,7 +493,6 @@ class _DeliveryListState extends State<DeliveryList> {
       future: getOrdersData(),
       // ignore: missing_return
       builder: (context, AsyncSnapshot snapshot) {
-        if (connectResult == true) {
           if (isSwitched && snapshot.hasData) {
             return ListView.builder(
                 itemCount: orders == null ? 0 : orders.length,
@@ -522,10 +518,7 @@ class _DeliveryListState extends State<DeliveryList> {
           } else if (isSwitched && !snapshot.hasData) {
             return _bodyOfflineStatus("На данный момент заказы отсутсвуют", "Ожидайте...");
           }
-        } else {
-          return _bodyOfflineStatus("Подключение отсутсвует", "Проверьте соединение с интернетом");
-        }
-      },
+        },
     );
   }
 
