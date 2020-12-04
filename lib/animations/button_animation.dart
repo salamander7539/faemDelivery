@@ -78,7 +78,7 @@ class _ButtonAnimationState extends State<ButtonAnimation>
                 // isSwitched = false;
               });
               await getStatusOrder("offer_rejected", orderDetail['offer']['uuid'], null, null);
-              await switchDeliverStatus('offline');
+              await switchDeliverStatus('online');
               Navigator.pop(context);
               Navigator.pop(context);
               // Navigator.push(context, MaterialPageRoute(builder: (context) => DeliveryList()));
