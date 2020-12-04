@@ -75,8 +75,7 @@ class _ButtonAnimationState extends State<ButtonAnimation>
                 animationComplete = true;
                 barColorOpacity = .6;
                 barColor = Color(0xFF33353E);
-                deliverStatus = null;
-                isSwitched = false;
+                // isSwitched = false;
               });
               await getStatusOrder("offer_rejected", orderDetail['offer']['uuid'], null, null);
               await switchDeliverStatus('offline');

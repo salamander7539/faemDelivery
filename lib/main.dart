@@ -3,6 +3,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:faem_delivery/Internet/show_pop_up.dart';
 import 'package:faem_delivery/auth_code_screen.dart';
 import 'package:faem_delivery/auth_phone_screen.dart';
+import 'package:faem_delivery/deliveryJson/DriverData.dart';
 import 'package:faem_delivery/deliveryJson/deliver_verification.dart';
 import 'package:faem_delivery/deliveryJson/get_driver_data.dart';
 import 'package:faem_delivery/deliveryJson/get_free_order_detail.dart';
@@ -162,10 +163,31 @@ class _DeliveryListState extends State<DeliveryList> {
   void initState() {
     super.initState();
     _checkLoginStatus();
+    // _checkOnlineStatus();
     stopwatch.start();
     stopwatch.stop();
     milliseconds = stopwatch.elapsedMicroseconds;
   }
+
+  // _checkOnlineStatus() async {
+  //   FutureBuilder(
+  //     future: getDriverData(),
+  //     // ignore: missing_return
+  //     builder: (BuildContext context, AsyncSnapshot<DriverData> snapshot) {
+  //       if (snapshot.hasData) {
+  //         if (snapshot.data.stateName == 'offline') {
+  //           setState(() {
+  //             isSwitched = false;
+  //           });
+  //         } else {
+  //           setState(() {
+  //             isSwitched = true;
+  //           });
+  //         }
+  //       }
+  //     },
+  //   );
+  // }
 
   final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
 
@@ -252,6 +274,7 @@ class _DeliveryListState extends State<DeliveryList> {
                 value: isSwitched,
                 onChanged: (value) async {
                   if (await Internet.checkConnection()) {
+                    await getDriverData();
                     if (this.mounted) {
                       setState(() {
                         isSwitched = value;
@@ -264,8 +287,10 @@ class _DeliveryListState extends State<DeliveryList> {
                       }
                     }
                   } else {
+                    setState(() {
+                      isSwitched = false;
+                    });
                     PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
-                    return _bodyOfflineStatus("Подключение отсутвует", "Проверьте соединение с интернетом");
                   }
                 },
                 inactiveTrackColor: Color(0xFFFF8064),
@@ -492,32 +517,32 @@ class _DeliveryListState extends State<DeliveryList> {
     return FutureBuilder(
       future: getOrdersData(),
       // ignore: missing_return
-      builder: (context, AsyncSnapshot snapshot) {
-          if (isSwitched && snapshot.hasData) {
-            return ListView.builder(
-                itemCount: orders == null ? 0 : orders.length,
-                itemBuilder: (context, index) {
-                  switch (orders[index]['order']['routes'][0]['category']) {
-                    case 'Рестораны':
-                      category = 'ресторана';
-                      break;
-                    case 'Аптеки':
-                      category = 'аптеки';
-                      break;
-                    case 'Магазины':
-                      category = 'магазина';
-                      break;
-                    default :
-                      category = 'заведения';
-                      break;
-                  }
-                  return _orderWindow(index, category);
-                });
-          } else if (!isSwitched) {
-            return _bodyOfflineStatus("Заказы вам не доступны", "Чтобы получить доступ к свободным заказам, пожалуйста перейдите в онлайн");
-          } else if (isSwitched && !snapshot.hasData) {
-            return _bodyOfflineStatus("На данный момент заказы отсутсвуют", "Ожидайте...");
-          }
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (isSwitched && snapshot.hasData) {
+              return ListView.builder(
+                  itemCount: orders == null ? 0 : orders.length,
+                  itemBuilder: (context, index) {
+                    switch (orders[index]['order']['routes'][0]['category']) {
+                      case 'Рестораны':
+                        category = 'ресторана';
+                        break;
+                      case 'Аптеки':
+                        category = 'аптеки';
+                        break;
+                      case 'Магазины':
+                        category = 'магазина';
+                        break;
+                      default :
+                        category = 'заведения';
+                        break;
+                    }
+                    return _orderWindow(index, category);
+                  });
+            } else if (!isSwitched) {
+              return _bodyOfflineStatus("Заказы вам не доступны", "Чтобы получить доступ к свободным заказам, пожалуйста перейдите в онлайн");
+            } else if (isSwitched && !snapshot.hasData) {
+              return _bodyOfflineStatus("На данный момент заказы отсутсвуют", "Ожидайте...");
+            }
         },
     );
   }

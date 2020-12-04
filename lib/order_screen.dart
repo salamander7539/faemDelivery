@@ -41,6 +41,7 @@ class _OrderPageState extends State<OrderPage> {
   bool switchEnable = false;
   StreamSubscription<ConnectivityResult> subscription;
 
+
   onStartOrder(newStatus) {
     setState(() {
       buttonStatus = newStatus;
@@ -117,9 +118,6 @@ class _OrderPageState extends State<OrderPage> {
                             });
                           }
                           if (this.mounted && deliverStatus == null) {
-                            setState(() {
-                               switchEnable = false;
-                            });
                             if (isSwitched == false) {
                               setState(() {
                                 isSwitched = true;
@@ -151,7 +149,7 @@ class _OrderPageState extends State<OrderPage> {
                           }
                         } else {
                           setState(() {
-                            isSwitched = false;
+                            // isSwitched = false;
                             opacity = 0.5;
                           });
                           PopUp.showInternetDialog('Ошибка подключения к интернету!\nПроверьте ваше интернет-соединение!');
@@ -412,12 +410,9 @@ class _OrderPageState extends State<OrderPage> {
                                             await availableMaps.first
                                                 .showMarker(
                                               coords: Coords(
-                                                  dataUse['order']['routes'][1]
-                                                      ['lat'],
-                                                  dataUse['order']['routes'][1]
-                                                      ['lon']),
-                                              title: dataUse['order']['routes']
-                                                  [1]['value'],
+                                                  dataUse['order']['routes'][1]['lat'],
+                                                  dataUse['order']['routes'][1]['lon']),
+                                              title: dataUse['order']['routes'][1]['value'],
                                             );
                                           },
                                         ),
@@ -473,7 +468,7 @@ class _OrderPageState extends State<OrderPage> {
                                               if (okCall) {
                                                 PopUp.showInternetDialog('Соединяю вас с клиентом\nОжидайте...');
                                               } else {
-                                                PopUp.showInternetDialog('Попытка соедить вас с клиентом провалилась\nПопробуйте снова через минуту...');
+                                                PopUp.showInternetDialog('Попытка соединить вас с клиентом провалилась\nПопробуйте снова через минуту...');
                                               }
                                             },
                                             icon: Icon(Icons.call),
@@ -700,9 +695,9 @@ class _OrderPageState extends State<OrderPage> {
                                   }
                                   if (deliverStatus == "order_payment") {
                                     await getStatusOrder('finished', dataUse['offer']['uuid'], null, null);
-                                    setState(() {
-                                      deliverStatus = null;
-                                    });
+                                    assignCheck = true;
+                                    deliverStatus = null;
+                                    print('isSwitched: $isSwitched');
                                     Navigator.pop(context);
                                   }
                                   if (deliverStatus == null) {
@@ -710,7 +705,7 @@ class _OrderPageState extends State<OrderPage> {
                                       phoneVisibility = true;
                                     });
                                     await updateRefreshToken(sharedPreferences.get('refToken'));
-                                    if (deliverStatus != "finished") {
+                                    if (assignCheck == false) {
                                       var assignCode = await assignOrder(dataUse['offer']['uuid']);
                                       if (assignCode == 200) {
                                         var statusCode = await getStatusOrder('offer_offered', dataUse['offer']['uuid'], null, null);
@@ -1112,8 +1107,11 @@ class _OrderPageState extends State<OrderPage> {
     }
   }
 
+  bool assignCheck;
+
   @override
   void initState() {
+    assignCheck = false;
     orderValue = null;
     deniedCallVisibility = false;
     if (initData['order_data'] == null) {

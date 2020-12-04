@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'deliver_verification.dart';
 
-
+var stateName;
 
 Future<DriverData> getDriverData() async {
   sharedPreferences = await SharedPreferences.getInstance();
@@ -19,6 +19,7 @@ Future<DriverData> getDriverData() async {
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
     driverData = new DriverData.fromJson(jsonResponse);
+    stateName = driverData.stateName;
   } else {
     print("driver: ${response.body}");
   }
